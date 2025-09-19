@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Mic, MicOff, Send, Loader2 } from 'lucide-react';
-import type { SpeechRecognition } from "../../global"
 
 const VoiceCommand = () => {
   const [isRecording, setIsRecording] = useState(false);
