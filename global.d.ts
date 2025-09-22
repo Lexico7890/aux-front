@@ -47,6 +47,14 @@ declare global {
         quantity: number;
         minStock: number;
     }
+
+    interface FileObject {
+        status: string;
+        progress: number;
+        id: number;
+        name: string;
+        size: string;
+    }
 }
 
 // Esto obliga a TS a cargar el archivo como módulo
