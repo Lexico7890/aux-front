@@ -1,0 +1,22 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Navigation from '../components/Navigation.jsx';
+import InventoryTable from '../components/InventoryTable.jsx';
+---
+
+<Layout title="Inventario - Gestión de Stock">
+  <Navigation currentPath="/inventario" client:load />
+  
+  <main class="max-w-7xl mx-auto px-4 py-8">
+    <div class="mb-8">
+      <h1 class="text-3xl font-bold text-gray-900 mb-4">
+        Inventario Actual
+      </h1>
+      <p class="text-lg text-gray-600">
+        Consulta y gestiona el stock de todos los talleres
+      </p>
+    </div>
+    
+    <InventoryTable client:load />
+  </main>
+</Layout>
