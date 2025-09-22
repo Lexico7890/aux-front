@@ -38,6 +38,15 @@ declare global {
         error: string;
         message: string;
     }
+
+    interface ItemInventory {
+        id: number;
+        category: string;
+        location: string;
+        name: string;
+        quantity: number;
+        minStock: number;
+    }
 }
 
 // Esto obliga a TS a cargar el archivo como módulo

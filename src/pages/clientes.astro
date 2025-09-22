@@ -1,0 +1,161 @@
+---
+import Navigation from '../components/Navigation.jsx';
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Clientes - Lista de Espera">
+  <Navigation currentPath="/clientes" client:load />
+  
+  <main class="max-w-7xl mx-auto px-4 py-8">
+    <div class="mb-8">
+      <h1 class="text-3xl font-bold text-gray-900 mb-4">
+        Clientes en Espera
+      </h1>
+      <p class="text-lg text-gray-600">
+        Gestiona la lista de clientes esperando piezas
+      </p>
+    </div>
+    
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <!-- Add Client Form -->
+      <div class="bg-white rounded-lg shadow-sm p-6">
+        <h2 class="text-xl font-semibold mb-6">Agregar Cliente</h2>
+        
+        <form class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Nombre del Cliente</label>
+            <input type="text" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="Nombre completo">
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Pieza Necesaria</label>
+            <select class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+              <option value="">Selecciona pieza</option>
+              <option value="bateria-36v">Batería 36V</option>
+              <option value="controlador-vesc">Controlador VESC</option>
+              <option value="rueda-90mm">Rueda 90mm</option>
+              <option value="motor-3000w">Motor 3000W</option>
+              <option value="deck-bamboo">Deck Bamboo</option>
+              <option value="cargador-42v">Cargador 42V</option>
+            </select>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Cantidad</label>
+            <input type="number" min="1" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="1">
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
+            <input type="email" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="cliente@email.com">
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">WhatsApp</label>
+            <input type="tel" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="+57 300 123 4567">
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Prioridad</label>
+            <select class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+              <option value="normal">Normal</option>
+              <option value="alta">Alta</option>
+              <option value="urgente">Urgente</option>
+            </select>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Notas</label>
+            <textarea rows="3" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="Información adicional..."></textarea>
+          </div>
+          
+          <button type="submit" class="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium">
+            Agregar a Lista de Espera
+          </button>
+        </form>
+      </div>
+      
+      <!-- Waiting List -->
+      <div class="bg-white rounded-lg shadow-sm p-6">
+        <h2 class="text-xl font-semibold mb-6">Lista de Espera</h2>
+        
+        <div class="space-y-4">
+          <div class="border border-gray-200 rounded-lg p-4">
+            <div class="flex justify-between items-start mb-3">
+              <div>
+                <h3 class="font-medium text-gray-900">María González</h3>
+                <p class="text-sm text-gray-600">Batería 36V (x1)</p>
+              </div>
+              <span class="px-2 py-1 bg-red-100 text-red-800 text-xs rounded-full">Urgente</span>
+            </div>
+            <div class="text-sm text-gray-600 mb-3">
+              <p>📧 maria.gonzalez@email.com</p>
+              <p>📱 +57 300 123 4567</p>
+              <p>📅 En espera desde: 15/01/2025</p>
+            </div>
+            <div class="flex gap-2">
+              <button class="px-3 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700">
+                Notificar
+              </button>
+              <button class="px-3 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700">
+                Completar
+              </button>
+              <button class="px-3 py-1 bg-gray-600 text-white text-xs rounded hover:bg-gray-700">
+                Editar
+              </button>
+            </div>
+          </div>
+          
+          <div class="border border-gray-200 rounded-lg p-4">
+            <div class="flex justify-between items-start mb-3">
+              <div>
+                <h3 class="font-medium text-gray-900">Carlos Ruiz</h3>
+                <p class="text-sm text-gray-600">Motor 3000W (x1)</p>
+              </div>
+              <span class="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-full">Alta</span>
+            </div>
+            <div class="text-sm text-gray-600 mb-3">
+              <p>📧 carlos.ruiz@email.com</p>
+              <p>📱 +57 301 234 5678</p>
+              <p>📅 En espera desde: 18/01/2025</p>
+            </div>
+            <div class="flex gap-2">
+              <button class="px-3 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700">
+                Notificar
+              </button>
+              <button class="px-3 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700">
+                Completar
+              </button>
+              <button class="px-3 py-1 bg-gray-600 text-white text-xs rounded hover:bg-gray-700">
+                Editar
+              </button>
+            </div>
+          </div>
+          
+          <div class="border border-gray-200 rounded-lg p-4 opacity-75">
+            <div class="flex justify-between items-start mb-3">
+              <div>
+                <h3 class="font-medium text-gray-900">Ana Martínez</h3>
+                <p class="text-sm text-gray-600">Rueda 90mm (x4)</p>
+              </div>
+              <span class="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">Notificado</span>
+            </div>
+            <div class="text-sm text-gray-600 mb-3">
+              <p>📧 ana.martinez@email.com</p>
+              <p>📱 +57 302 345 6789</p>
+              <p>📅 Notificado: 19/01/2025</p>
+            </div>
+            <div class="flex gap-2">
+              <button class="px-3 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700">
+                Completar
+              </button>
+              <button class="px-3 py-1 bg-orange-600 text-white text-xs rounded hover:bg-orange-700">
+                Re-notificar
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</Layout>
