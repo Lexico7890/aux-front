@@ -112,16 +112,16 @@ const VoiceCommand = () => {
 
   return (
     <div className="w-full max-w-2xl mx-auto p-6">
-      <div className="bg-white rounded-2xl shadow-lg p-8">
+      <div className="bg-white rounded-2xl shadow-lg p-8 dark:bg-dark-800 dark:text-white">
         {/* Voice Button */}
         <div className="flex justify-center mb-8">
           <button
             onClick={isRecording ? stopRecording : startRecording}
             disabled={!recognition}
-            className={`relative w-24 h-24 rounded-full flex items-center justify-center transition-all duration-300 transform hover:scale-105 ${
+            className={`relative w-32 h-32 rounded-full flex items-center justify-center transition-all duration-300 transform hover:scale-105 ${
               isRecording 
                 ? 'bg-red-500 shadow-lg shadow-red-200 animate-pulse' 
-                : 'bg-blue-500 hover:bg-blue-600 shadow-lg shadow-blue-200'
+                : 'bg-blue-500 hover:bg-blue-600 shadow-lg shadow-blue-200 dark:shadow-lg dark:shadow-gray-600'
             } ${!recognition ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
             {isRecording ? (
@@ -136,7 +136,7 @@ const VoiceCommand = () => {
           </button>
         </div>
 
-        <p className="text-center text-gray-600 mb-6">
+        <p className="text-center text-gray-600 mb-6 dark:text-white">
           {isRecording 
             ? 'Escuchando... Habla ahora' 
             : recognition 
@@ -154,7 +154,7 @@ const VoiceCommand = () => {
               onChange={(e) => setTextCommand(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="Escribe tu comando aquí... ej: 'Agregar 5 baterías al taller de Medellín'"
-              className="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+              className="w-full dark:bg-dark-700 p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
               rows={3}
               disabled={isProcessing}
             />
@@ -192,25 +192,25 @@ const VoiceCommand = () => {
         <div className="mt-8 grid grid-cols-2 md:grid-cols-4 gap-3">
           <button 
             onClick={() => setTextCommand('Consultar stock de baterías')}
-            className="p-3 text-sm bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+            className="p-3 dark:bg-dark-700 text-sm bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
           >
             📦 Ver Stock
           </button>
           <button 
             onClick={() => setTextCommand('Agregar 1 rueda al taller principal')}
-            className="p-3 text-sm bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+            className="p-3 dark:bg-dark-700 text-sm bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
           >
             ➕ Agregar Item
           </button>
           <button 
             onClick={() => setTextCommand('Mover 2 controladores a técnico')}
-            className="p-3 text-sm bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+            className="p-3 dark:bg-dark-700 text-sm bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
           >
             🔄 Mover Items
           </button>
           <button 
             onClick={() => setTextCommand('Notificar cliente en espera')}
-            className="p-3 text-sm bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+            className="p-3 dark:bg-dark-7000' text-sm bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
           >
             🔔 Notificar
           </button>
