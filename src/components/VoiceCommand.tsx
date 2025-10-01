@@ -3,7 +3,8 @@ import { Mic, MicOff, Send, Loader2 } from "lucide-react";
 
 const VoiceCommand = () => {
   const [isRecording, setIsRecording] = useState(false);
-  const [textCommand, setTextCommand] = useState("");
+  const [orderNumber, setOrderNumber] = useState<string>("");
+  const [itemName, setItemName] = useState<string>("");
   const [result, setResult] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
   const [audioBlob, setAudioBlob] = useState<any>(null);
@@ -119,7 +120,7 @@ const VoiceCommand = () => {
 
         // Si el backend devolvió la transcripción, mostrarla en el textarea
         if (data.transcription) {
-          setTextCommand(data.transcription);
+          setItemName(data.transcription);
         }
       } else {
         const errorData = await response.json();
@@ -170,13 +171,13 @@ const VoiceCommand = () => {
 
   const handleSubmit = (e: any) => {
     e.preventDefault();
-    processTextCommand(textCommand);
+    processTextCommand(itemName);
   };
 
   const handleKeyDown = (e: any) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      processTextCommand(textCommand);
+      processTextCommand(itemName);
     }
   };
 
@@ -200,8 +201,8 @@ const VoiceCommand = () => {
   };
 
   return (
-    <div className="w-full max-w-2xl mx-auto p-6">
-      <div className="bg-white dark:bg-dark-800 rounded-2xl shadow-lg dark:shadow-2xl border border-gray-200 dark:border-dark-700 p-8">
+    <div className="w-full max-w-2xl mx-auto sm:p-6">
+      <div className="sm:bg-white sm:dark:bg-dark-800 dark:bg-dark-700 rounded-2xl sm:shadow-lg dark:shadow-2xl sm:border border-gray-200 dark:border-dark-700 p-8">
         {/* Voice Button */}
         <div className="flex justify-center mb-8 sm:hidden">
           <button
@@ -256,13 +257,13 @@ const VoiceCommand = () => {
                 <label className="text-center text-gray-500 dark:text-dark-400">
                   Orden
                 </label>
-                <input type="number" className="w-full p-4 border border-gray-300 dark:border-dark-600 bg-white dark:bg-dark-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-neon-blue-500 focus:border-transparent resize-none transition-all duration-300 placeholder-gray-500 dark:placeholder-dark-400" />
+                <input onChange={(e) => setOrderNumber(e.target.value)} type="number" value={orderNumber} className="w-full p-4 border border-gray-300 dark:border-dark-600 bg-white dark:bg-dark-800 sm:dark:bg-dark-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-neon-blue-500 focus:border-transparent resize-none transition-all duration-300 placeholder-gray-500 dark:placeholder-dark-400" />
               </div>
               <div className="col-span-2 mb-4 sm:mb-0">
                 <label className="text-center text-gray-500 dark:text-dark-400">
                   Item
                 </label>
-                <input className="w-full p-4 border border-gray-300 dark:border-dark-600 bg-white dark:bg-dark-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-neon-blue-500 focus:border-transparent resize-none transition-all duration-300 placeholder-gray-500 dark:placeholder-dark-400" />
+                <input onChange={(e) => setItemName(e.target.value)} type="text" value={itemName} className="w-full p-4 border border-gray-300 dark:border-dark-600 bg-white dark:bg-dark-800 sm:dark:bg-dark-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-neon-blue-500 focus:border-transparent resize-none transition-all duration-300 placeholder-gray-500 dark:placeholder-dark-400" />
               </div>
             </div>
             {/*<textarea
@@ -277,14 +278,14 @@ const VoiceCommand = () => {
             />*/}
             <button
               type="submit"
-              disabled={!textCommand.trim() || isProcessing || isRecording}
+              disabled={!itemName.trim() || Number(orderNumber) < 9999 || isProcessing || isRecording}
               className="bottom-3 right-3 p-2 bg-neon-blue-500 hover:bg-neon-blue-400 text-white rounded-lg hover:shadow-glow-blue disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 border border-neon-blue-400 w-full"
             >
               {isProcessing ? (
                 <Loader2 className="h-5 w-5 animate-spin" />
               ) : (
                 <p className="flex items-center justify-center w-full">
-                  <Send className="h-5 w-5" /> Enviar
+                  Enviar
                 </p>
               )}
             </button>
@@ -326,39 +327,39 @@ const VoiceCommand = () => {
         {/* Quick Actions */}
         <div className="mt-8 grid grid-cols-2 md:grid-cols-2 gap-3">
           <button
-            onClick={() => setTextCommand("Consultar stock de baterías")}
+            onClick={() => setItemName("Consultar stock de baterías")}
             disabled={isRecording || isProcessing}
-            className="p-3 text-sm bg-gray-100 dark:bg-dark-700 hover:bg-neon-purple-500/10 dark:hover:bg-neon-purple-500/20 text-gray-700 dark:text-dark-300 hover:text-neon-purple-400 hover:border-neon-purple-400/30 rounded-lg transition-all duration-300 border border-transparent hover:shadow-glow-purple/20 disabled:opacity-50"
+            className="p-3 text-sm bg-gray-100 dark:bg-dark-800 sm:dark:bg-dark-700 hover:bg-neon-purple-500/10 dark:hover:bg-neon-purple-500/20 text-gray-700 dark:text-dark-300 hover:text-neon-purple-400 hover:border-neon-purple-400/30 rounded-lg transition-all duration-300 border border-transparent hover:shadow-glow-purple/20 disabled:opacity-50"
           >
             📦 Ver Stock
           </button>
           <button
             onClick={() =>
-              setTextCommand("Agregar 1 rueda al taller principal")
+              setItemName("Agregar 1 rueda al taller principal")
             }
             disabled={isRecording || isProcessing}
-            className="p-3 text-sm bg-gray-100 dark:bg-dark-700 hover:bg-neon-green-500/10 dark:hover:bg-neon-green-500/20 text-gray-700 dark:text-dark-300 hover:text-neon-green-400 hover:border-neon-green-400/30 rounded-lg transition-all duration-300 border border-transparent hover:shadow-glow-green/20 disabled:opacity-50"
+            className="p-3 text-sm bg-gray-100 dark:bg-dark-800 sm:dark:bg-dark-700 hover:bg-neon-green-500/10 dark:hover:bg-neon-green-500/20 text-gray-700 dark:text-dark-300 hover:text-neon-green-400 hover:border-neon-green-400/30 rounded-lg transition-all duration-300 border border-transparent hover:shadow-glow-green/20 disabled:opacity-50"
           >
             ➕ Agregar Item
           </button>
           <button
-            onClick={() => setTextCommand("Mover 2 controladores a técnico")}
+            onClick={() => setItemName("Mover 2 controladores a técnico")}
             disabled={isRecording || isProcessing}
-            className="p-3 text-sm bg-gray-100 dark:bg-dark-700 hover:bg-neon-yellow-500/10 dark:hover:bg-neon-yellow-500/20 text-gray-700 dark:text-dark-300 hover:text-neon-yellow-400 hover:border-neon-yellow-400/30 rounded-lg transition-all duration-300 border border-transparent hover:shadow-glow-yellow/20 disabled:opacity-50"
+            className="p-3 text-sm bg-gray-100 dark:bg-dark-800 sm:dark:bg-dark-700 hover:bg-neon-yellow-500/10 dark:hover:bg-neon-yellow-500/20 text-gray-700 dark:text-dark-300 hover:text-neon-yellow-400 hover:border-neon-yellow-400/30 rounded-lg transition-all duration-300 border border-transparent hover:shadow-glow-yellow/20 disabled:opacity-50"
           >
             🔄 Mover Items
           </button>
           <button
-            onClick={() => setTextCommand("Notificar cliente en espera")}
+            onClick={() => setItemName("Notificar cliente en espera")}
             disabled={isRecording || isProcessing}
-            className="p-3 text-sm bg-gray-100 dark:bg-dark-700 hover:bg-neon-pink-500/10 dark:hover:bg-neon-pink-500/20 text-gray-700 dark:text-dark-300 hover:text-neon-pink-400 hover:border-neon-pink-400/30 rounded-lg transition-all duration-300 border border-transparent hover:shadow-glow-pink/20 disabled:opacity-50"
+            className="p-3 text-sm bg-gray-100 dark:bg-dark-800 sm:dark:bg-dark-700 hover:bg-neon-pink-500/10 dark:hover:bg-neon-pink-500/20 text-gray-700 dark:text-dark-300 hover:text-neon-pink-400 hover:border-neon-pink-400/30 rounded-lg transition-all duration-300 border border-transparent hover:shadow-glow-pink/20 disabled:opacity-50"
           >
             🔔 Notificar
           </button>
         </div>
 
         {/* Instructions */}
-        <div className="mt-6 p-4 bg-blue-50 dark:bg-dark-700/50 rounded-lg border border-blue-200 dark:border-dark-600">
+        <div className="mt-6 p-4 bg-blue-50 dark:bg-dark-800 sm:dark:bg-dark-700 rounded-lg border border-blue-200 dark:border-dark-600">
           <p className="text-xs text-gray-600 dark:text-dark-400 text-center">
             💡 <strong>Tip:</strong> Mantén presionado el botón del micrófono
             mientras hablas. El audio se enviará automáticamente cuando lo
