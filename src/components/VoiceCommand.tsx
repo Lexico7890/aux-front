@@ -6,65 +6,134 @@ const VoiceCommand = () => {
   const [textCommand, setTextCommand] = useState('');
   const [result, setResult] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
-  const [recognition, setRecognition] = useState<SpeechRecognition | null>(null);
+  const [audioBlob, setAudioBlob] = useState<any>(null);
+  
+  const mediaRecorderRef = useRef<any>(null);
+  const audioChunksRef = useRef<any>([]);
+  const streamRef = useRef<any>(null);
   const textareaRef = useRef(null);
 
+  // Cleanup al desmontar
   useEffect(() => {
-    // Initialize speech recognition
-    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-      const recognitionInstance = new SpeechRecognition();
-      
-      recognitionInstance.continuous = false;
-      recognitionInstance.interimResults = false;
-      recognitionInstance.lang = 'es-ES';
-      
-      recognitionInstance.onstart = () => {
-        setIsRecording(true);
-      };
-      
-      recognitionInstance.onresult = (event: any) => {
-        const transcript = event.results[0][0].transcript;
-        setTextCommand(transcript);
-        setIsRecording(false);
-      };
-      
-      recognitionInstance.onerror = (event: any) => {
-        console.error('Speech recognition error:', event.error);
-        setIsRecording(false);
-        setResult('Error al reconocer la voz. Intenta de nuevo.');
-      };
-      
-      recognitionInstance.onend = () => {
-        setIsRecording(false);
-      };
-      
-      setRecognition(recognitionInstance);
-    }
+    return () => {
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((track: any) => track.stop());
+      }
+    };
   }, []);
 
-  const startRecording = () => {
-    if (recognition && !isRecording) {
+  // Iniciar grabación (cuando presiona el botón)
+  const startRecording = async () => {
+    try {
+      // Resetear estado
       setResult('');
-      recognition.start();
+      audioChunksRef.current = [];
+      setAudioBlob(null);
+
+      // Solicitar acceso al micrófono
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          sampleRate: 44100
+        } 
+      });
+      
+      streamRef.current = stream;
+
+      // Crear MediaRecorder
+      const mediaRecorder = new MediaRecorder(stream, {
+        mimeType: 'audio/webm;codecs=opus' // Formato compatible
+      });
+      
+      mediaRecorderRef.current = mediaRecorder;
+
+      // Guardar chunks de audio
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
+      };
+
+      // Cuando termina la grabación
+      mediaRecorder.onstop = () => {
+        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        setAudioBlob(audioBlob);
+        
+        // Enviar automáticamente al backend
+        sendAudioToBackend(audioBlob);
+
+        // Detener stream
+        if (streamRef.current) {
+          streamRef.current.getTracks().forEach((track: any) => track.stop());
+          streamRef.current = null;
+        }
+      };
+
+      // Iniciar grabación
+      mediaRecorder.start();
+      setIsRecording(true);
+
+    } catch (error) {
+      console.error('Error al acceder al micrófono:', error);
+      setResult('Error: No se pudo acceder al micrófono. Verifica los permisos.');
     }
   };
 
+  // Detener grabación (cuando suelta el botón)
   const stopRecording = () => {
-    if (recognition && isRecording) {
-      recognition.stop();
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
     }
   };
 
-  const processCommand = async (command: string) => {
+  // Enviar audio al backend
+  const sendAudioToBackend = async (audioBlob: any) => {
+    setIsProcessing(true);
+    setResult('Procesando audio...');
+
+    try {
+      // Crear FormData para enviar el archivo
+      const formData = new FormData();
+      formData.append('audio', audioBlob, 'command.webm');
+      formData.append('language', 'es-ES');
+
+      // Enviar al backend
+      const response = await fetch('http://localhost:8000/api/voice-command', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setResult(data.result || data.transcription || 'Audio procesado correctamente');
+        
+        // Si el backend devolvió la transcripción, mostrarla en el textarea
+        if (data.transcription) {
+          setTextCommand(data.transcription);
+        }
+      } else {
+        const errorData = await response.json();
+        setResult(`Error: ${errorData.detail || 'No se pudo procesar el audio'}`);
+      }
+    } catch (error) {
+      console.error('Error al enviar audio:', error);
+      setResult('Error: No se pudo conectar con el servidor');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  // Procesar comando de texto
+  const processTextCommand = async (command: any) => {
     if (!command.trim()) return;
     
     setIsProcessing(true);
     setResult('Procesando comando...');
     
     try {
-      // Simulate API call to backend
-      const response = await fetch('/api/command', {
+      const response = await fetch('http://localhost:8000/api/command', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -76,23 +145,12 @@ const VoiceCommand = () => {
         const data = await response.json();
         setResult(data.result || 'Comando procesado correctamente');
       } else {
-        // Fallback for demo - simulate different responses
-        const mockResponses = [
-          'Se agregaron 3 baterías al taller Medellín',
-          'Stock actualizado: 15 ruedas disponibles en Bogotá',
-          'Movimiento registrado: 2 controladores enviados al técnico Juan',
-          'Cliente notificado: Pieza disponible para María González'
-        ];
-        
-        setTimeout(() => {
-          setResult(mockResponses[Math.floor(Math.random() * mockResponses.length)]);
-          setIsProcessing(false);
-        }, 1500);
-        return;
+        const errorData = await response.json();
+        setResult(`Error: ${errorData.detail || 'No se pudo procesar el comando'}`);
       }
     } catch (error) {
       console.error('Error processing command:', error);
-      setResult('Error al procesar el comando. Verifica tu conexión.');
+      setResult('Error: No se pudo conectar con el servidor');
     }
     
     setIsProcessing(false);
@@ -100,49 +158,83 @@ const VoiceCommand = () => {
 
   const handleSubmit = (e: any) => {
     e.preventDefault();
-    processCommand(textCommand);
+    processTextCommand(textCommand);
   };
 
   const handleKeyDown = (e: any) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      processCommand(textCommand);
+      processTextCommand(textCommand);
     }
+  };
+
+  // Handlers para mantener presionado
+  const handleMouseDown = () => {
+    startRecording();
+  };
+
+  const handleMouseUp = () => {
+    stopRecording();
+  };
+
+  const handleTouchStart = (e: any) => {
+    e.preventDefault();
+    startRecording();
+  };
+
+  const handleTouchEnd = (e: any) => {
+    e.preventDefault();
+    stopRecording();
   };
 
   return (
     <div className="w-full max-w-2xl mx-auto p-6">
-      <div className="bg-white rounded-2xl shadow-lg p-8 dark:bg-dark-800 dark:text-white">
+      <div className="bg-white dark:bg-dark-800 rounded-2xl shadow-lg dark:shadow-2xl border border-gray-200 dark:border-dark-700 p-8">
         {/* Voice Button */}
         <div className="flex justify-center mb-8">
           <button
-            onClick={isRecording ? stopRecording : startRecording}
-            disabled={!recognition}
-            className={`relative w-32 h-32 rounded-full flex items-center justify-center transition-all duration-300 transform hover:scale-105 ${
+            onMouseDown={handleMouseDown}
+            onMouseUp={handleMouseUp}
+            onMouseLeave={handleMouseUp}
+            onTouchStart={handleTouchStart}
+            onTouchEnd={handleTouchEnd}
+            disabled={isProcessing}
+            className={`relative w-32 h-32 rounded-full flex items-center justify-center transition-all duration-300 transform active:scale-95 border-2 select-none ${
               isRecording 
-                ? 'bg-red-500 shadow-lg shadow-red-200 animate-pulse' 
-                : 'bg-blue-500 hover:bg-blue-600 shadow-lg shadow-blue-200 dark:shadow-lg dark:shadow-gray-600'
-            } ${!recognition ? 'opacity-50 cursor-not-allowed' : ''}`}
+                ? 'bg-neon-red-500 border-neon-red-400 shadow-glow-red animate-pulse-neon' 
+                : 'bg-neon-blue-500 hover:bg-neon-blue-400 border-neon-blue-400 shadow-glow-blue hover:shadow-glow-blue hover:scale-105'
+            } ${isProcessing ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
           >
             {isRecording ? (
-              <MicOff className="h-10 w-10 text-white" />
+              <MicOff className="h-12 w-12 text-white drop-shadow-lg" />
             ) : (
-              <Mic className="h-10 w-10 text-white" />
+              <Mic className="h-12 w-12 text-white drop-shadow-lg" />
             )}
             
             {isRecording && (
-              <div className="absolute inset-0 rounded-full border-4 border-red-300 animate-ping"></div>
+              <>
+                <div className="absolute inset-0 rounded-full border-4 border-neon-red-300 animate-ping"></div>
+                <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 whitespace-nowrap">
+                  <span className="text-xs text-neon-red-400 font-medium animate-pulse">
+                    Grabando...
+                  </span>
+                </div>
+              </>
             )}
           </button>
         </div>
 
-        <p className="text-center text-gray-600 mb-6 dark:text-white">
+        <p className="text-center text-gray-600 dark:text-dark-300 mb-2 font-medium">
           {isRecording 
-            ? 'Escuchando... Habla ahora' 
-            : recognition 
-              ? 'Presiona el micrófono y di tu comando'
-              : 'Micrófono no disponible - Usa el campo de texto'
+            ? '🎤 Grabando... Suelta para enviar' 
+            : isProcessing
+              ? '⏳ Procesando...'
+              : '🎙️ Mantén presionado para grabar'
           }
+        </p>
+        
+        <p className="text-center text-xs text-gray-500 dark:text-dark-400 mb-6">
+          O escribe tu comando abajo
         </p>
 
         {/* Text Input */}
@@ -154,14 +246,14 @@ const VoiceCommand = () => {
               onChange={(e) => setTextCommand(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="Escribe tu comando aquí... ej: 'Agregar 5 baterías al taller de Medellín'"
-              className="w-full dark:bg-dark-700 p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+              className="w-full p-4 border border-gray-300 dark:border-dark-600 bg-white dark:bg-dark-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-neon-blue-500 focus:border-transparent resize-none transition-all duration-300 placeholder-gray-500 dark:placeholder-dark-400"
               rows={3}
-              disabled={isProcessing}
+              disabled={isProcessing || isRecording}
             />
             <button
               type="submit"
-              disabled={!textCommand.trim() || isProcessing}
-              className="absolute bottom-3 right-3 p-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              disabled={!textCommand.trim() || isProcessing || isRecording}
+              className="absolute bottom-3 right-3 p-2 bg-neon-blue-500 hover:bg-neon-blue-400 text-white rounded-lg hover:shadow-glow-blue disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 border border-neon-blue-400"
             >
               {isProcessing ? (
                 <Loader2 className="h-5 w-5 animate-spin" />
@@ -174,12 +266,12 @@ const VoiceCommand = () => {
 
         {/* Result */}
         {result && (
-          <div className={`mt-6 p-4 rounded-lg ${
+          <div className={`mt-6 p-4 rounded-lg border transition-all duration-300 ${
             result.includes('Error') || result.includes('error') 
-              ? 'bg-red-50 border border-red-200 text-red-800' 
+              ? 'bg-neon-red-500/10 border-neon-red-400/30 text-neon-red-400 shadow-glow-red/20' 
               : isProcessing
-                ? 'bg-blue-50 border border-blue-200 text-blue-800'
-                : 'bg-green-50 border border-green-200 text-green-800'
+                ? 'bg-neon-blue-500/10 border-neon-blue-400/30 text-neon-blue-400 shadow-glow-blue/20'
+                : 'bg-neon-green-500/10 border-neon-green-400/30 text-neon-green-400 shadow-glow-green/20'
           }`}>
             <div className="flex items-center">
               {isProcessing && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
@@ -188,32 +280,56 @@ const VoiceCommand = () => {
           </div>
         )}
 
+        {/* Audio Preview (opcional) */}
+        {audioBlob && !isProcessing && (
+          <div className="mt-4 p-3 bg-gray-50 dark:bg-dark-700 rounded-lg">
+            <p className="text-xs text-gray-600 dark:text-dark-400 mb-2">Audio grabado:</p>
+            <audio 
+              controls 
+              src={URL.createObjectURL(audioBlob)}
+              className="w-full h-8"
+            />
+          </div>
+        )}
+
         {/* Quick Actions */}
         <div className="mt-8 grid grid-cols-2 md:grid-cols-4 gap-3">
           <button 
             onClick={() => setTextCommand('Consultar stock de baterías')}
-            className="p-3 dark:bg-dark-700 text-sm bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+            disabled={isRecording || isProcessing}
+            className="p-3 text-sm bg-gray-100 dark:bg-dark-700 hover:bg-neon-purple-500/10 dark:hover:bg-neon-purple-500/20 text-gray-700 dark:text-dark-300 hover:text-neon-purple-400 hover:border-neon-purple-400/30 rounded-lg transition-all duration-300 border border-transparent hover:shadow-glow-purple/20 disabled:opacity-50"
           >
             📦 Ver Stock
           </button>
           <button 
             onClick={() => setTextCommand('Agregar 1 rueda al taller principal')}
-            className="p-3 dark:bg-dark-700 text-sm bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+            disabled={isRecording || isProcessing}
+            className="p-3 text-sm bg-gray-100 dark:bg-dark-700 hover:bg-neon-green-500/10 dark:hover:bg-neon-green-500/20 text-gray-700 dark:text-dark-300 hover:text-neon-green-400 hover:border-neon-green-400/30 rounded-lg transition-all duration-300 border border-transparent hover:shadow-glow-green/20 disabled:opacity-50"
           >
             ➕ Agregar Item
           </button>
           <button 
             onClick={() => setTextCommand('Mover 2 controladores a técnico')}
-            className="p-3 dark:bg-dark-700 text-sm bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+            disabled={isRecording || isProcessing}
+            className="p-3 text-sm bg-gray-100 dark:bg-dark-700 hover:bg-neon-yellow-500/10 dark:hover:bg-neon-yellow-500/20 text-gray-700 dark:text-dark-300 hover:text-neon-yellow-400 hover:border-neon-yellow-400/30 rounded-lg transition-all duration-300 border border-transparent hover:shadow-glow-yellow/20 disabled:opacity-50"
           >
             🔄 Mover Items
           </button>
           <button 
             onClick={() => setTextCommand('Notificar cliente en espera')}
-            className="p-3 dark:bg-dark-7000' text-sm bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+            disabled={isRecording || isProcessing}
+            className="p-3 text-sm bg-gray-100 dark:bg-dark-700 hover:bg-neon-pink-500/10 dark:hover:bg-neon-pink-500/20 text-gray-700 dark:text-dark-300 hover:text-neon-pink-400 hover:border-neon-pink-400/30 rounded-lg transition-all duration-300 border border-transparent hover:shadow-glow-pink/20 disabled:opacity-50"
           >
             🔔 Notificar
           </button>
+        </div>
+
+        {/* Instructions */}
+        <div className="mt-6 p-4 bg-blue-50 dark:bg-dark-700/50 rounded-lg border border-blue-200 dark:border-dark-600">
+          <p className="text-xs text-gray-600 dark:text-dark-400 text-center">
+            💡 <strong>Tip:</strong> Mantén presionado el botón del micrófono mientras hablas. 
+            El audio se enviará automáticamente cuando lo sueltes.
+          </p>
         </div>
       </div>
     </div>
