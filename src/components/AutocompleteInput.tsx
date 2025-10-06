@@ -32,9 +32,18 @@ export default function AutocompleteInput() {
   const fetchSuggestions = async (text: any) => {
     try {
       setLoading(true);
-      // Cambia esta URL por tu endpoint real:
-      const response = await fetch(`/api/items/search?query=${encodeURIComponent(text)}`);
-      const data = await response.json();
+      const backendUrl = "https://aux-backend-snlq.onrender.com";
+    
+    const url = `${backendUrl}/inventory/search?q=${encodeURIComponent(text)}`;
+    
+    const response = await fetch(url);
+    
+    // Si usas TypeScript, asegúrate de que el estado acepte el tipo de datos correcto
+    if (!response.ok) {
+        throw new Error(`Error ${response.status}: Fallo en la búsqueda`);
+    }
+
+    const data = await response.json();
       setSuggestions(data || []);
     } catch (err) {
       console.error("Error buscando coincidencias:", err);
