@@ -1,10 +1,15 @@
 import React, { useState, useEffect } from "react";
 
-export default function AutocompleteInput() {
+interface AutocompleteInputProps {
+  onSelect: (selection: any) => void;
+  selected?: any;
+  setSelected: (selection: any) => void;
+}
+
+export default function AutocompleteInput({ onSelect, selected, setSelected }: AutocompleteInputProps) {
   const [query, setQuery] = useState("");
   const [suggestions, setSuggestions] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [selected, setSelected] = useState<any>(null);
   const [timer, setTimer] = useState<any>(null);
 
   // --- Ejecuta la búsqueda con 2s de debounce ---
@@ -30,20 +35,23 @@ export default function AutocompleteInput() {
 
   // --- Llamada al endpoint ---
   const fetchSuggestions = async (text: any) => {
+    if (selected) {
+      return;
+    }
     try {
       setLoading(true);
       const backendUrl = "https://aux-backend-snlq.onrender.com";
-    
-    const url = `${backendUrl}/inventory/search?q=${encodeURIComponent(text)}`;
-    
-    const response = await fetch(url);
-    
-    // Si usas TypeScript, asegúrate de que el estado acepte el tipo de datos correcto
-    if (!response.ok) {
-        throw new Error(`Error ${response.status}: Fallo en la búsqueda`);
-    }
 
-    const data = await response.json();
+      const url = `${backendUrl}/inventory/search?q=${encodeURIComponent(text)}`;
+
+      const response = await fetch(url);
+
+      // Si usas TypeScript, asegúrate de que el estado acepte el tipo de datos correcto
+      if (!response.ok) {
+        throw new Error(`Error ${response.status}: Fallo en la búsqueda`);
+      }
+
+      const data = await response.json();
       setSuggestions(data || []);
     } catch (err) {
       console.error("Error buscando coincidencias:", err);
@@ -57,10 +65,11 @@ export default function AutocompleteInput() {
     setSelected(item);
     setQuery(item.name || item); // muestra en el input
     setSuggestions([]); // cierra el listado
+    onSelect(item);
   };
 
   return (
-    <div className="relative w-full max-w-md mx-auto mt-6">
+    <div className="relative w-full mx-auto">
       <input
         type="text"
         value={query}
@@ -73,13 +82,13 @@ export default function AutocompleteInput() {
       />
 
       {loading && (
-        <div className="absolute left-0 right-0 bg-white border rounded-lg mt-1 p-2 text-gray-500">
+        <div className="absolute z-40 left-0 right-0 bg-white border rounded-lg mt-1 p-2 text-gray-500">
           Buscando...
         </div>
       )}
 
       {!loading && suggestions.length > 0 && (
-        <ul className="absolute left-0 right-0 bg-white border rounded-lg mt-1 max-h-60 overflow-y-auto shadow">
+        <ul className="absolute z-40 left-0 right-0 bg-white border rounded-lg mt-1 max-h-60 overflow-y-auto shadow">
           {suggestions.map((item: any) => (
             <li
               key={item.id || item.name}
@@ -93,9 +102,9 @@ export default function AutocompleteInput() {
       )}
 
       {selected && (
-        <div className="mt-4 p-2 bg-gray-100 rounded">
+        <div className="mt-4 p-2 bg-gray-100 rounded dark:bg-dark-400">
           <p className="text-sm text-gray-700">
-            <strong>Seleccionado:</strong> {selected.name || selected}
+            <strong>Referencia:</strong> {selected.id || selected}
           </p>
         </div>
       )}
