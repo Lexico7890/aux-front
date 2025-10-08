@@ -13,7 +13,7 @@ interface InventoryItem {
     current_stock: number | null;
     // CAMBIO 2: Si el API tiene un campo llamado 'stock' para la unidad de medida, lo añadimos
     // Si tu cambio en el API fue de 'unit' a 'stock', lo reflejamos aquí:
-    stock: string | null; 
+    stock: number | null; 
     created_at: string | null;
     updated_at: string | null;
 }
@@ -290,7 +290,7 @@ const InventoryTable = () => {
                                 {/* Cantidad */}
                                 <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900 text-right">
                                     {/* CAMBIO 3: Usar item.stock en lugar de item.unit para la unidad de medida */}
-                                    {item.stock !== null ? `${item.stock} ${item.stock || 'uds'}` : '...'}
+                                    {item.stock !== null ? `${item.stock} uds` : '...'}
                                 </td>
                                 {/* Mínimo */}
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -299,7 +299,7 @@ const InventoryTable = () => {
                                 {/* Estado */}
                                 <td className="px-6 py-4 whitespace-nowrap">
                                     <StockStatusBadge 
-                                        current={item.current_stock} 
+                                        current={item.stock} 
                                         min={item.min_stock} 
                                     />
                                 </td>

@@ -7,7 +7,7 @@ const InventoryForm = () => {
         name: '', // varchar
         description: '', // text (opcional)
         category: '', // varchar (opcional)
-        quantity: '', // varchar (opcional)
+        stock: '', // varchar (opcional)
         min_stock: "", // int4 (opcional)
         location_id: 10
     });
@@ -47,8 +47,8 @@ const InventoryForm = () => {
                 ...newItem,
                 // Asegurar que min_stock sea un número
                 min_stock: newItem.min_stock === '' ? null : parseInt(newItem.min_stock) || 0,
-                // Asegurar que quantity sea un número
-                quantity: newItem.quantity === '' ? null : parseInt(newItem.quantity) || 0,
+                // Asegurar que stock sea un número
+                stock: newItem.stock === '' ? null : parseInt(newItem.stock) || 0,
             };
 
             const response = await fetch(url, {
@@ -64,7 +64,7 @@ const InventoryForm = () => {
                 setMessage(`Ítem "${result.name}" creado con éxito!`);
                 setIsSuccess(true);
                 setNewItem({ // Limpiar formulario
-                    id: '', name: '', description: '', category: '', quantity: '', min_stock: "", location_id: 10
+                    id: '', name: '', description: '', category: '', stock: '', min_stock: "", location_id: 10
                 });
                 // OPCIONAL: Podrías necesitar recargar la tabla InventoryTable aquí.
             } else {
@@ -115,14 +115,14 @@ const InventoryForm = () => {
                         className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border"
                     />
                 </div>
-                {/* Puedes añadir más campos como description, category, quantity, min_stock, etc. */}
+                {/* Puedes añadir más campos como description, category, stock, min_stock, etc. */}
                 <div>
-                    <label htmlFor="quantity" className="block text-sm font-medium text-gray-700">Unidades</label>
+                    <label htmlFor="stock" className="block text-sm font-medium text-gray-700">Unidades</label>
                     <input
                         type="number"
-                        name="quantity"
-                        id="quantity"
-                        value={newItem.quantity}
+                        name="stock"
+                        id="stock"
+                        value={newItem.stock}
                         onChange={handleChange}
                         className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border"
                     />
