@@ -2,6 +2,8 @@
 import Layout from '../layouts/Layout.astro';
 import Navigation from '../components/Navigation.jsx';
 import InventoryTable from '../components/InventoryTable.jsx';
+// Importa el nuevo componente de React
+import InventoryForm from '../components/InventoryForm.jsx'; 
 ---
 
 <Layout title="Inventario - Gestión de Stock">
@@ -17,6 +19,20 @@ import InventoryTable from '../components/InventoryTable.jsx';
       </p>
     </div>
     
-    <InventoryTable client:load />
+    {/* 🚨 ESTRUCTURA RESPONSIVA CLAVE */}
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      
+      {/* Columna 1: Formulario. Ocupa 1/3 en escritorio. */}
+      <div class="lg:col-span-1">
+        <InventoryForm client:load /> 
+      </div>
+
+      {/* Columna 2: Tabla. Ocupa 2/3 en escritorio. */}
+      <div class="lg:col-span-2">
+        <InventoryTable client:load />
+      </div>
+    </div>
+    {/* 🚨 FIN ESTRUCTURA RESPONSIVA */}
+
   </main>
 </Layout>
