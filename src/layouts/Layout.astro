@@ -4,6 +4,7 @@ export interface Props {
 }
 
 const { title } = Astro.props;
+import { Toaster } from "@/components/ui/sonner"
 ---
 
 <!doctype html>
@@ -19,7 +20,7 @@ const { title } = Astro.props;
 	</head>
 	<body class="bg-gray-50 min-h-screen">
 		<slot />
-
+		<Toaster richColors client:load />
 		<script>
 			// Register Service Worker
 			if ("serviceWorker" in navigator) {

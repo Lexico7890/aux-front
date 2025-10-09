@@ -1,7 +1,8 @@
-import React, { useState, useRef, useEffect } from "react";
-import { Mic, MicOff, Send, Loader2, DoorOpen, DoorClosed } from "lucide-react";
+import React, { useState } from "react";
+import { Loader2, DoorOpen, DoorClosed } from "lucide-react";
 import AutocompleteInput from "./AutocompleteInput";
 import { Slider } from "@/components/ui/slider";
+import { toast } from "sonner"
 
 const ENUM_ACTIONS = {
   SALIDA_COTIZACION: "salida_cotizacion",
@@ -64,6 +65,11 @@ const MovementCoworkers = () => {
           createdMovement
         );
         // Aquí puedes limpiar el formulario o mostrar una notificación de éxito
+        toast.success("Movimiento creado con éxito");
+        setOrderNumber("");
+        setItemName({ id: "", name: "" });
+        setSelected(null);
+        setCountItems(1);
         return createdMovement;
       } else {
         // Manejo de errores 4xx y 5xx
@@ -93,7 +99,7 @@ const MovementCoworkers = () => {
         <form onSubmit={handleCreateMovement} className="space-y-4">
           <div className="relative">
             <div className="grid sm:grid-cols-3 grid-cols-1 sm:gap-4 sm:mb-4">
-              <div className="col-span-1 mb-4 sm:mb-0">
+              <div className="sm:col-span-1 col-span-3 mb-4 sm:mb-0">
                 <input
                   placeholder="Numero de Orden"
                   onChange={(e) => setOrderNumber(e.target.value)}
@@ -109,7 +115,7 @@ const MovementCoworkers = () => {
                   setSelected={setSelected}
                 />
               </div>
-              <div className="col-span-3 flex items-center gap-4 mx-4">
+              <div className="col-span-3 flex items-center gap-4 mx-4 mb-4">
                 <span className="text-gray-700 dark:text-dark-300 font-semibold text-lg">{countItems}</span>
                 <Slider
                   defaultValue={[1]}
