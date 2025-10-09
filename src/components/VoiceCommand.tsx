@@ -1,15 +1,30 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Mic, MicOff, Send, Loader2 } from "lucide-react";
+import { Mic, MicOff, Send, Loader2, DoorOpen, DoorClosed } from "lucide-react";
 import AutocompleteInput from "./AutocompleteInput";
+import { Slider } from "@/components/ui/slider";
+
+const ENUM_ACTIONS = {
+  SALIDA_COTIZACION: "salida_cotizacion",
+  ENTRADA_COTIZACION: "entrada_cotizacion",
+  SALIDA_PRESTAMO: "salida_prestamo",
+  ENTRADA_PRESTAMO: "entrada_prestamo",
+  SALIDA_GARANTIA: "salida garantia",
+  ENTRADA_GARANTIA: "entrada garantia",
+};
 
 const VoiceCommand = () => {
   const [isRecording, setIsRecording] = useState(false);
   const [orderNumber, setOrderNumber] = useState<string>("");
-  const [itemName, setItemName] = useState<{ id: string, name: string }>({ id: "", name: "" });
+  const [itemName, setItemName] = useState<{ id: string; name: string }>({
+    id: "",
+    name: "",
+  });
   const [result, setResult] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
   const [audioBlob, setAudioBlob] = useState<any>(null);
   const [selected, setSelected] = useState<any>(null);
+  const [actionSelected, setActionSelected] =
+    useState<keyof typeof ENUM_ACTIONS>("SALIDA_COTIZACION");
 
   const mediaRecorderRef = useRef<any>(null);
   const audioChunksRef = useRef<any>([]);
@@ -174,7 +189,6 @@ const VoiceCommand = () => {
   const handleSubmit = async (e: any) => {
     e.preventDefault();
     processTextCommand(itemName.name);
-
   };
 
   const handleCreateMovement = async (e: any) => {
@@ -186,12 +200,10 @@ const VoiceCommand = () => {
 
     const movementData = {
       item_id: itemName.id,
-      movement_type: "transferencia",
+      movement_type: actionSelected,
       quantity: 1,
-
-      // Datos adicionales que el modelo MovementCreate probablemente espera:
-      from_location_id: 1,
-      to_location_id: 2,
+      from_location_id: 10,
+      to_location_id: 10,
       reason: "Venta o Consumo",
       notes: "Movimiento automático desde la interfaz de inventario.",
       performed_by: "system_user",
@@ -202,9 +214,9 @@ const VoiceCommand = () => {
 
     try {
       const response = await fetch(url, {
-        method: 'POST', // 🚨 CAMBIO CRÍTICO: Debe ser POST
+        method: "POST", // 🚨 CAMBIO CRÍTICO: Debe ser POST
         headers: {
-          'Content-Type': 'application/json', // Informa al servidor que enviamos JSON
+          "Content-Type": "application/json", // Informa al servidor que enviamos JSON
         },
         body: JSON.stringify(movementData), // Convierte el objeto a una cadena JSON
       });
@@ -212,17 +224,23 @@ const VoiceCommand = () => {
       // 3. Manejo de la Respuesta
       if (response.ok) {
         const createdMovement = await response.json();
-        console.log("Registro de movimiento creado con éxito:", createdMovement);
+        console.log(
+          "Registro de movimiento creado con éxito:",
+          createdMovement
+        );
         // Aquí puedes limpiar el formulario o mostrar una notificación de éxito
         return createdMovement;
-
       } else {
         // Manejo de errores 4xx y 5xx
-        const errorData = await response.json().catch(() => ({ detail: "Error desconocido." }));
-        console.error(`Error ${response.status} al crear el movimiento:`, errorData.detail);
+        const errorData = await response
+          .json()
+          .catch(() => ({ detail: "Error desconocido." }));
+        console.error(
+          `Error ${response.status} al crear el movimiento:`,
+          errorData.detail
+        );
         throw new Error(`Fallo al crear el movimiento: ${errorData.detail}`);
       }
-
     } catch (err) {
       console.error("Error de red o de la aplicación:", err);
       // Aquí puedes manejar la UI para mostrar un error al usuario
@@ -267,10 +285,11 @@ const VoiceCommand = () => {
             onTouchStart={handleTouchStart}
             onTouchEnd={handleTouchEnd}
             disabled={isProcessing}
-            className={`relative w-32 h-32 rounded-full flex items-center justify-center transition-all duration-300 transform active:scale-95 border-2 select-none ${isRecording
-              ? "bg-neon-red-500 border-neon-red-400 shadow-glow-red animate-pulse-neon"
-              : "bg-neon-blue-500 hover:bg-neon-blue-400 border-neon-blue-400 shadow-glow-blue hover:shadow-glow-blue hover:scale-105"
-              } ${isProcessing ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
+            className={`relative w-32 h-32 rounded-full flex items-center justify-center transition-all duration-300 transform active:scale-95 border-2 select-none ${
+              isRecording
+                ? "bg-neon-red-500 border-neon-red-400 shadow-glow-red animate-pulse-neon"
+                : "bg-neon-blue-500 hover:bg-neon-blue-400 border-neon-blue-400 shadow-glow-blue hover:shadow-glow-blue hover:scale-105"
+            } ${isProcessing ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
           >
             {isRecording ? (
               <MicOff className="h-12 w-12 text-white drop-shadow-lg" />
@@ -308,11 +327,28 @@ const VoiceCommand = () => {
           <div className="relative">
             <div className="grid sm:grid-cols-3 grid-cols-1 sm:gap-4 sm:mb-4">
               <div className="col-span-1 mb-4 sm:mb-0">
-                <input placeholder="Numero de Orden" onChange={(e) => setOrderNumber(e.target.value)} type="number" value={orderNumber} className="w-full p-4 border border-gray-300 dark:border-dark-600 bg-white dark:bg-dark-800 sm:dark:bg-dark-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-neon-blue-500 focus:border-transparent resize-none transition-all duration-300 placeholder-gray-500 dark:placeholder-dark-400" />
+                <input
+                  placeholder="Numero de Orden"
+                  onChange={(e) => setOrderNumber(e.target.value)}
+                  type="number"
+                  value={orderNumber}
+                  className="w-full p-4 border border-gray-300 dark:border-dark-600 bg-white dark:bg-dark-800 sm:dark:bg-dark-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-neon-blue-500 focus:border-transparent resize-none transition-all duration-300 placeholder-gray-500 dark:placeholder-dark-400"
+                />
               </div>
               <div className="col-span-2 mb-4 sm:mb-0">
-                <AutocompleteInput onSelect={setItemName} selected={selected} setSelected={setSelected} />
+                <AutocompleteInput
+                  onSelect={setItemName}
+                  selected={selected}
+                  setSelected={setSelected}
+                />
               </div>
+              <Slider
+                defaultValue={[33]}
+                max={100}
+                step={1}
+                value={[2]}
+                className="bg-red-400 rounded-full"
+              />
             </div>
             {/*<textarea
               ref={textareaRef}
@@ -326,7 +362,12 @@ const VoiceCommand = () => {
             />*/}
             <button
               type="submit"
-              disabled={!selected || Number(orderNumber) < 9999 || isProcessing || isRecording}
+              disabled={
+                !selected ||
+                Number(orderNumber) < 9999 ||
+                isProcessing ||
+                isRecording
+              }
               className="bottom-3 right-3 p-2 bg-neon-blue-500 hover:bg-neon-blue-400 text-white rounded-lg hover:shadow-glow-blue disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 border border-neon-blue-400 w-full"
             >
               {isProcessing ? (
@@ -343,12 +384,13 @@ const VoiceCommand = () => {
         {/* Result */}
         {result && (
           <div
-            className={`mt-6 p-4 rounded-lg border transition-all duration-300 ${result.includes("Error") || result.includes("error")
-              ? "bg-neon-red-500/10 border-neon-red-400/30 text-neon-red-400 shadow-glow-red/20"
-              : isProcessing
-                ? "bg-neon-blue-500/10 border-neon-blue-400/30 text-neon-blue-400 shadow-glow-blue/20"
-                : "bg-neon-green-500/10 border-neon-green-400/30 text-neon-green-400 shadow-glow-green/20"
-              }`}
+            className={`mt-6 p-4 rounded-lg border transition-all duration-300 ${
+              result.includes("Error") || result.includes("error")
+                ? "bg-neon-red-500/10 border-neon-red-400/30 text-neon-red-400 shadow-glow-red/20"
+                : isProcessing
+                  ? "bg-neon-blue-500/10 border-neon-blue-400/30 text-neon-blue-400 shadow-glow-blue/20"
+                  : "bg-neon-green-500/10 border-neon-green-400/30 text-neon-green-400 shadow-glow-green/20"
+            }`}
           >
             <div className="flex items-center">
               {isProcessing && (
@@ -374,34 +416,82 @@ const VoiceCommand = () => {
         {/* Quick Actions */}
         <div className="mt-8 grid grid-cols-2 md:grid-cols-2 gap-3">
           <button
-            onClick={() => setItemName({ id: "", name: "Agregar 1 rueda al taller principal" })}
+            onClick={() => setActionSelected("SALIDA_COTIZACION")}
             disabled={isRecording || isProcessing}
-            className="p-3 text-sm bg-gray-100 dark:bg-dark-800 sm:dark:bg-dark-700 hover:bg-neon-purple-500/10 dark:hover:bg-neon-purple-500/20 text-gray-700 dark:text-dark-300 hover:text-neon-purple-400 hover:border-neon-purple-400/30 rounded-lg transition-all duration-300 border border-transparent hover:shadow-glow-purple/20 disabled:opacity-50"
-          >
-            📦 Ver Stock
-          </button>
-          <button
-            onClick={() =>
-              setItemName({ id: "", name: "Agregar 1 rueda al taller principal" })
+            className={
+              actionSelected === "SALIDA_COTIZACION"
+                ? "p-3 text-sm rounded-lg transition-all duration-300 border border-transparent disabled:opacity-50 bg-neon-purple-500 text-white shadow-lg shadow-neon-purple-500/50"
+                : "p-3 text-sm bg-gray-100 dark:bg-dark-800 sm:dark:bg-dark-700 hover:bg-neon-purple-500/10 dark:hover:bg-neon-purple-500/20 text-gray-700 dark:text-dark-300 hover:text-neon-purple-400 hover:border-neon-purple-400/30 rounded-lg transition-all duration-300 border border-transparent hover:shadow-glow-purple/20 disabled:opacity-50"
             }
-            disabled={isRecording || isProcessing}
-            className="p-3 text-sm bg-gray-100 dark:bg-dark-800 sm:dark:bg-dark-700 hover:bg-neon-green-500/10 dark:hover:bg-neon-green-500/20 text-gray-700 dark:text-dark-300 hover:text-neon-green-400 hover:border-neon-green-400/30 rounded-lg transition-all duration-300 border border-transparent hover:shadow-glow-green/20 disabled:opacity-50"
           >
-            ➕ Agregar Item
+            <p className="flex items-center justify-center w-full gap-2">
+              <DoorOpen /> Salida Cotizacion
+            </p>
           </button>
           <button
-            onClick={() => setItemName({ id: "", name: "Agregar 1 rueda al taller principal" })}
+            onClick={() => setActionSelected("ENTRADA_COTIZACION")}
             disabled={isRecording || isProcessing}
-            className="p-3 text-sm bg-gray-100 dark:bg-dark-800 sm:dark:bg-dark-700 hover:bg-neon-yellow-500/10 dark:hover:bg-neon-yellow-500/20 text-gray-700 dark:text-dark-300 hover:text-neon-yellow-400 hover:border-neon-yellow-400/30 rounded-lg transition-all duration-300 border border-transparent hover:shadow-glow-yellow/20 disabled:opacity-50"
+            className={
+              actionSelected === "ENTRADA_COTIZACION"
+                ? "p-3 text-sm rounded-lg transition-all duration-300 border border-transparent disabled:opacity-50 bg-neon-green-500 text-white shadow-lg shadow-neon-green-500/50"
+                : "p-3 text-sm bg-gray-100 dark:bg-dark-800 sm:dark:bg-dark-700 hover:bg-neon-green-500/10 dark:hover:bg-neon-green-500/20 text-gray-700 dark:text-dark-300 hover:text-neon-green-400 hover:border-neon-green-400/30 rounded-lg transition-all duration-300 border border-transparent hover:shadow-glow-green/20 disabled:opacity-50"
+            }
           >
-            🔄 Mover Items
+            <p className="flex items-center justify-center w-full gap-2">
+              <DoorClosed /> Entrada contizacion
+            </p>
           </button>
           <button
-            onClick={() => setItemName({ id: "", name: "Agregar 1 rueda al taller principal" })}
+            onClick={() => setActionSelected("SALIDA_PRESTAMO")}
             disabled={isRecording || isProcessing}
-            className="p-3 text-sm bg-gray-100 dark:bg-dark-800 sm:dark:bg-dark-700 hover:bg-neon-pink-500/10 dark:hover:bg-neon-pink-500/20 text-gray-700 dark:text-dark-300 hover:text-neon-pink-400 hover:border-neon-pink-400/30 rounded-lg transition-all duration-300 border border-transparent hover:shadow-glow-pink/20 disabled:opacity-50"
+            className={
+              actionSelected === "SALIDA_PRESTAMO"
+                ? "p-3 text-sm rounded-lg transition-all duration-300 border border-transparent disabled:opacity-50 bg-neon-yellow-500 text-white shadow-lg shadow-neon-yellow-500/50"
+                : "p-3 text-sm bg-gray-100 dark:bg-dark-800 sm:dark:bg-dark-700 hover:bg-neon-yellow-500/10 dark:hover:bg-neon-yellow-500/20 text-gray-700 dark:text-dark-300 hover:text-neon-yellow-400 hover:border-neon-yellow-400/30 rounded-lg transition-all duration-300 border border-transparent hover:shadow-glow-yellow/20 disabled:opacity-50"
+            }
           >
-            🔔 Notificar
+            <p className="flex items-center justify-center w-full gap-2">
+              <DoorOpen /> Salida prestamo
+            </p>
+          </button>
+          <button
+            onClick={() => setActionSelected("ENTRADA_PRESTAMO")}
+            disabled={isRecording || isProcessing}
+            className={
+              actionSelected === "ENTRADA_PRESTAMO"
+                ? "p-3 text-sm rounded-lg transition-all duration-300 border border-transparent disabled:opacity-50 bg-neon-pink-500 text-white shadow-lg shadow-neon-pink-500/50"
+                : "p-3 text-sm bg-gray-100 dark:bg-dark-800 sm:dark:bg-dark-700 hover:bg-neon-pink-500/10 dark:hover:bg-neon-pink-500/20 text-gray-700 dark:text-dark-300 hover:text-neon-pink-400 hover:border-neon-pink-400/30 rounded-lg transition-all duration-300 border border-transparent hover:shadow-glow-pink/20 disabled:opacity-50"
+            }
+          >
+            <p className="flex items-center justify-center w-full gap-2">
+              <DoorClosed /> Entrada prestamo
+            </p>
+          </button>
+          <button
+            onClick={() => setActionSelected("SALIDA_GARANTIA")}
+            disabled={isRecording || isProcessing}
+            className={
+              actionSelected === "SALIDA_GARANTIA"
+                ? "p-3 text-sm rounded-lg transition-all duration-300 border border-transparent disabled:opacity-50 bg-neon-red-500 text-white shadow-lg shadow-neon-red-500/50"
+                : "p-3 text-sm bg-gray-100 dark:bg-dark-800 sm:dark:bg-dark-700 hover:bg-neon-red-500/10 dark:hover:bg-neon-red-500/20 text-gray-700 dark:text-dark-300 hover:text-neon-red-400 hover:border-neon-red-400/30 rounded-lg transition-all duration-300 border border-transparent hover:shadow-glow-red/20 disabled:opacity-50"
+            }
+          >
+            <p className="flex items-center justify-center w-full gap-2">
+              <DoorOpen /> Salida Garantia
+            </p>
+          </button>
+          <button
+            onClick={() => setActionSelected("ENTRADA_GARANTIA")}
+            disabled={isRecording || isProcessing}
+            className={
+              actionSelected === "ENTRADA_GARANTIA"
+                ? "p-3 text-sm rounded-lg transition-all duration-300 border border-transparent disabled:opacity-50 bg-neon-orange-500 text-white shadow-lg shadow-neon-orange-500/50"
+                : "p-3 text-sm bg-gray-100 dark:bg-dark-800 sm:dark:bg-dark-700 hover:bg-neon-orange-500/10 dark:hover:bg-neon-orange-500/20 text-gray-700 dark:text-dark-300 hover:text-neon-orange-400 hover:border-neon-orange-400/30 rounded-lg transition-all duration-300 border border-transparent hover:shadow-glow-orange/20 disabled:opacity-50"
+            }
+          >
+            <p className="flex items-center justify-center w-full gap-2">
+              <DoorClosed /> Entrada Garantia
+            </p>
           </button>
         </div>
 
@@ -419,10 +509,3 @@ const VoiceCommand = () => {
 };
 
 export default VoiceCommand;
-
-/**
- * <label className="text-center text-gray-500 dark:text-dark-400">
-                  Item
-                </label>
-                <input onChange={(e) => setItemName(e.target.value)} type="text" value={itemName} className="w-full p-4 border border-gray-300 dark:border-dark-600 bg-white dark:bg-dark-800 sm:dark:bg-dark-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-neon-blue-500 focus:border-transparent resize-none transition-all duration-300 placeholder-gray-500 dark:placeholder-dark-400" />
- */

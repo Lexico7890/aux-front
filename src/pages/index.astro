@@ -1,7 +1,7 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import Navigation from '../components/Navigation.jsx';
-import VoiceCommand from '../components/VoiceCommand.jsx';
+import MovementCoworkers from '@/components/MovementCoworkers';
 ---
 
 <Layout title="Inventario Patinetas - Inicio">
@@ -13,11 +13,11 @@ import VoiceCommand from '../components/VoiceCommand.jsx';
         Gestión de Inventario
       </h1>
       <p class="text-xl text-gray-600 dark:text-gray-400">
-        Di o escribe tu comando para actualizar el inventario
+        Escribe tu comando para actualizar el inventario
       </p>
     </div>
     
-    <VoiceCommand client:load />
+    <MovementCoworkers client:load />
     
   </main>
 </Layout>
