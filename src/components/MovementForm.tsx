@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { ArrowRight, Save, Loader2 } from 'lucide-react';
 import AutocompleteInput from './AutocompleteInput';
+import { useMovements } from '@/hooks/useMovements';
+import { ActionsMovements } from '@/types/movement';
 
 const MovementForm = () => {
   const [formData, setFormData] = useState({
@@ -11,38 +13,25 @@ const MovementForm = () => {
     quantity: '',
     notes: ''
   });
+  const { handleCreateMovement, isProcessing, selected, setSelected, setItemName } = useMovements()
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loading, setLoading] = useState(false);
   const [suggestionsLocations, setSuggestionsLocations] = useState([]);
   const [text, setText] = useState('');
-  const [itemName, setItemName] = useState<{ id: string, name: string }>({ id: "", name: "" });
-  const [selected, setSelected] = useState<any>(null);
+  const [countItems, setCountItems] = useState<number>(1);
+  const [orderNumber, setOrderNumber] = useState<string>("");
+  const [actionSelected, setActionSelected] = useState<ActionsMovements>(ActionsMovements.);
 
   const handleSubmit = async (e: any) => {
     e.preventDefault();
-    setIsSubmitting(true);
-
-    // Simulate API call
-    setTimeout(() => {
-      setIsSubmitting(false);
-      alert('Movimiento registrado correctamente');
-      setFormData({
-        type: '',
-        origin: '',
-        destination: '',
-        product: '',
-        quantity: '',
-        notes: ''
-      });
-    }, 1500);
+    handleCreateMovement(actionSelected, countItems, orderNumber)
+    setOrderNumber("");
+    setCountItems(1);
   };
 
-  const handleChange = (e: any) => {
-    setFormData(prev => ({
-      ...prev,
-      [e.target.name]: e.target.value
-    }));
-  };
+  const handleChangeAction = () => {
+
+  }
 
   const fetchSuggestionsLocations = async () => {
     try {
@@ -78,15 +67,14 @@ const MovementForm = () => {
         <select
           name="type"
           value={formData.type}
-          onChange={handleChange}
+          onChange={handleChangeAction}
           required
           className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
         >
           <option value="">Selecciona tipo</option>
-          <option value="taller-taller">Taller ↔ Taller</option>
-          <option value="taller-tecnico">Taller ↔ Técnico</option>
-          <option value="entrada">Entrada de Stock</option>
-          <option value="salida">Salida de Stock</option>
+          <option value="TRASLADO">Traslado a Taller</option>
+          <option value="INGRESO">Ingreso Desde Taller</option>
+          <option value="INGRESO">Ingreso Desde Bodega</option>
         </select>
       </div>
 
