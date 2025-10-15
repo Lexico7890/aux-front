@@ -3,92 +3,26 @@ import { Loader2, DoorOpen, DoorClosed } from "lucide-react";
 import AutocompleteInput from "./AutocompleteInput";
 import { Slider } from "@/components/ui/slider";
 import { toast } from "sonner"
-
-const ENUM_ACTIONS = {
-  SALIDA_COTIZACION: "salida_cotizacion",
-  ENTRADA_COTIZACION: "entrada_cotizacion",
-  SALIDA_PRESTAMO: "salida_prestamo",
-  ENTRADA_PRESTAMO: "entrada_prestamo",
-  SALIDA_GARANTIA: "salida garantia",
-  ENTRADA_GARANTIA: "entrada garantia",
-};
+import { useMovements } from "@/hooks/useMovements";
+import { ActionsMovements } from "@/types/movement";
 
 const MovementCoworkers = () => {
-  const [orderNumber, setOrderNumber] = useState<string>("");
-  const [itemName, setItemName] = useState<{ id: string; name: string }>({
-    id: "",
-    name: "",
-  });
-  const [isProcessing, setIsProcessing] = useState<boolean>(false);
-  const [selected, setSelected] = useState<any>(null);
+
+
   const [countItems, setCountItems] = useState<number>(1);
+  const [orderNumber, setOrderNumber] = useState<string>("");
   const [actionSelected, setActionSelected] =
-    useState<keyof typeof ENUM_ACTIONS>("SALIDA_COTIZACION");
+    useState<ActionsMovements>(ActionsMovements.SALIDA_COTIZACION);
 
-  const handleCreateMovement = async (e: any) => {
-    e.preventDefault();
-    setIsProcessing(true);
-    if (!itemName.id) {
-      console.error("No se ha seleccionado un Item ID para el movimiento.");
-      return;
-    }
+  const { handleCreateMovement, isProcessing, selected, setSelected, setItemName } = useMovements()
 
-    const movementData = {
-      item_id: itemName.id,
-      movement_type: actionSelected,
-      quantity: countItems,
-      from_location_id: 10,
-      to_location_id: 10,
-      reason: "Venta o Consumo",
-      notes: "Movimiento automático desde la interfaz de inventario.",
-      performed_by: "system_user",
-      order_number: Number(orderNumber),
-    };
+  const submitForm = async (e: any) => {
+    e.preventDefault()
+    handleCreateMovement(actionSelected, countItems, orderNumber)
+    setOrderNumber("");
+    setCountItems(1);
+  }
 
-    const backendUrl = "https://aux-backend-snlq.onrender.com";
-    const url = `${backendUrl}/movements/`; // El endpoint POST es la ruta raíz
-
-    try {
-      const response = await fetch(url, {
-        method: "POST", // 🚨 CAMBIO CRÍTICO: Debe ser POST
-        headers: {
-          "Content-Type": "application/json", // Informa al servidor que enviamos JSON
-        },
-        body: JSON.stringify(movementData), // Convierte el objeto a una cadena JSON
-      });
-
-      // 3. Manejo de la Respuesta
-      if (response.ok) {
-        const createdMovement = await response.json();
-        console.log(
-          "Registro de movimiento creado con éxito:",
-          createdMovement
-        );
-        // Aquí puedes limpiar el formulario o mostrar una notificación de éxito
-        toast.success("Movimiento creado con éxito");
-        setOrderNumber("");
-        setItemName({ id: "", name: "" });
-        setSelected(null);
-        setCountItems(1);
-        return createdMovement;
-      } else {
-        // Manejo de errores 4xx y 5xx
-        const errorData = await response
-          .json()
-          .catch(() => ({ detail: "Error desconocido." }));
-        console.error(
-          `Error ${response.status} al crear el movimiento:`,
-          errorData.detail
-        );
-        throw new Error(`Fallo al crear el movimiento: ${errorData.detail}`);
-      }
-    } catch (err) {
-      console.error("Error de red o de la aplicación:", err);
-      // Aquí puedes manejar la UI para mostrar un error al usuario
-    } finally {
-      setIsProcessing(false);
-    }
-  };
 
   return (
     <div className="w-full max-w-2xl mx-auto sm:p-6">
@@ -96,7 +30,7 @@ const MovementCoworkers = () => {
         {/* Voice Button */}
 
         {/* Text Input */}
-        <form onSubmit={handleCreateMovement} className="space-y-4">
+        <form onSubmit={submitForm} className="space-y-4">
           <div className="relative">
             <div className="grid sm:grid-cols-3 grid-cols-1 sm:gap-4 sm:mb-4">
               <div className="sm:col-span-1 col-span-3 mb-4 sm:mb-0">
@@ -130,16 +64,19 @@ const MovementCoworkers = () => {
             </div>
             <button
               type="submit"
-              disabled={!selected || Number(orderNumber) < 9999}
+              disabled={!selected || Number(orderNumber) < 9999 || isProcessing}
               className="bottom-3 right-3 p-2 bg-neon-blue-500 hover:bg-neon-blue-400 text-white rounded-lg hover:shadow-glow-blue disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 border border-neon-blue-400 w-full"
             >
-              {isProcessing ? (
-                <Loader2 className="h-5 w-5 animate-spin" />
-              ) : (
-                <p className="flex items-center justify-center w-full">
-                  Enviar
-                </p>
-              )}
+              <p className="flex items-center justify-center w-full">
+                {isProcessing ? (
+                  <>
+                    Enviando...
+                    <Loader2 className="h-5 w-5 animate-spin ml-2" />
+                  </>
+                ) : (
+                  "Enviar"
+                )}
+              </p>
             </button>
           </div>
         </form>
@@ -147,9 +84,9 @@ const MovementCoworkers = () => {
         {/* Quick Actions */}
         <div className="mt-8 grid grid-cols-2 md:grid-cols-2 gap-3">
           <button
-            onClick={() => setActionSelected("SALIDA_COTIZACION")}
+            onClick={() => setActionSelected(ActionsMovements.SALIDA_COTIZACION)}
             className={
-              actionSelected === "SALIDA_COTIZACION"
+              actionSelected === ActionsMovements.SALIDA_COTIZACION
                 ? "p-3 text-sm rounded-lg transition-all duration-300 border border-transparent disabled:opacity-50 bg-neon-purple-500 text-white shadow-lg shadow-neon-purple-500/50"
                 : "p-3 text-sm bg-gray-100 dark:bg-dark-800 sm:dark:bg-dark-700 hover:bg-neon-purple-500/10 dark:hover:bg-neon-purple-500/20 text-gray-700 dark:text-dark-300 hover:text-neon-purple-400 hover:border-neon-purple-400/30 rounded-lg transition-all duration-300 border border-transparent hover:shadow-glow-purple/20 disabled:opacity-50"
             }
@@ -159,9 +96,9 @@ const MovementCoworkers = () => {
             </p>
           </button>
           <button
-            onClick={() => setActionSelected("ENTRADA_COTIZACION")}
+            onClick={() => setActionSelected(ActionsMovements.ENTRADA_COTIZACION)}
             className={
-              actionSelected === "ENTRADA_COTIZACION"
+              actionSelected === ActionsMovements.ENTRADA_COTIZACION
                 ? "p-3 text-sm rounded-lg transition-all duration-300 border border-transparent disabled:opacity-50 bg-neon-green-500 text-white shadow-lg shadow-neon-green-500/50"
                 : "p-3 text-sm bg-gray-100 dark:bg-dark-800 sm:dark:bg-dark-700 hover:bg-neon-green-500/10 dark:hover:bg-neon-green-500/20 text-gray-700 dark:text-dark-300 hover:text-neon-green-400 hover:border-neon-green-400/30 rounded-lg transition-all duration-300 border border-transparent hover:shadow-glow-green/20 disabled:opacity-50"
             }
@@ -171,9 +108,9 @@ const MovementCoworkers = () => {
             </p>
           </button>
           <button
-            onClick={() => setActionSelected("SALIDA_PRESTAMO")}
+            onClick={() => setActionSelected(ActionsMovements.SALIDA_PRESTAMO)}
             className={
-              actionSelected === "SALIDA_PRESTAMO"
+              actionSelected === ActionsMovements.SALIDA_PRESTAMO
                 ? "p-3 text-sm rounded-lg transition-all duration-300 border border-transparent disabled:opacity-50 bg-neon-yellow-500 text-white shadow-lg shadow-neon-yellow-500/50"
                 : "p-3 text-sm bg-gray-100 dark:bg-dark-800 sm:dark:bg-dark-700 hover:bg-neon-yellow-500/10 dark:hover:bg-neon-yellow-500/20 text-gray-700 dark:text-dark-300 hover:text-neon-yellow-400 hover:border-neon-yellow-400/30 rounded-lg transition-all duration-300 border border-transparent hover:shadow-glow-yellow/20 disabled:opacity-50"
             }
@@ -183,9 +120,9 @@ const MovementCoworkers = () => {
             </p>
           </button>
           <button
-            onClick={() => setActionSelected("ENTRADA_PRESTAMO")}
+            onClick={() => setActionSelected(ActionsMovements.ENTRADA_PRESTAMO)}
             className={
-              actionSelected === "ENTRADA_PRESTAMO"
+              actionSelected === ActionsMovements.ENTRADA_PRESTAMO
                 ? "p-3 text-sm rounded-lg transition-all duration-300 border border-transparent disabled:opacity-50 bg-neon-pink-500 text-white shadow-lg shadow-neon-pink-500/50"
                 : "p-3 text-sm bg-gray-100 dark:bg-dark-800 sm:dark:bg-dark-700 hover:bg-neon-pink-500/10 dark:hover:bg-neon-pink-500/20 text-gray-700 dark:text-dark-300 hover:text-neon-pink-400 hover:border-neon-pink-400/30 rounded-lg transition-all duration-300 border border-transparent hover:shadow-glow-pink/20 disabled:opacity-50"
             }
@@ -195,9 +132,9 @@ const MovementCoworkers = () => {
             </p>
           </button>
           <button
-            onClick={() => setActionSelected("SALIDA_GARANTIA")}
+            onClick={() => setActionSelected(ActionsMovements.SALIDA_GARANTIA)}
             className={
-              actionSelected === "SALIDA_GARANTIA"
+              actionSelected === ActionsMovements.SALIDA_GARANTIA
                 ? "p-3 text-sm rounded-lg transition-all duration-300 border border-transparent disabled:opacity-50 bg-neon-red-500 text-white shadow-lg shadow-neon-red-500/50"
                 : "p-3 text-sm bg-gray-100 dark:bg-dark-800 sm:dark:bg-dark-700 hover:bg-neon-red-500/10 dark:hover:bg-neon-red-500/20 text-gray-700 dark:text-dark-300 hover:text-neon-red-400 hover:border-neon-red-400/30 rounded-lg transition-all duration-300 border border-transparent hover:shadow-glow-red/20 disabled:opacity-50"
             }
@@ -207,9 +144,9 @@ const MovementCoworkers = () => {
             </p>
           </button>
           <button
-            onClick={() => setActionSelected("ENTRADA_GARANTIA")}
+            onClick={() => setActionSelected(ActionsMovements.ENTRADA_GARANTIA)}
             className={
-              actionSelected === "ENTRADA_GARANTIA"
+              actionSelected === ActionsMovements.ENTRADA_GARANTIA
                 ? "p-3 text-sm rounded-lg transition-all duration-300 border border-transparent disabled:opacity-50 bg-neon-orange-500 text-white shadow-lg shadow-neon-orange-500/50"
                 : "p-3 text-sm bg-gray-100 dark:bg-dark-800 sm:dark:bg-dark-700 hover:bg-neon-orange-500/10 dark:hover:bg-neon-orange-500/20 text-gray-700 dark:text-dark-300 hover:text-neon-orange-400 hover:border-neon-orange-400/30 rounded-lg transition-all duration-300 border border-transparent hover:shadow-glow-orange/20 disabled:opacity-50"
             }
