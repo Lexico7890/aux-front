@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Package, RotateCcw, Upload, Users, Bell } from 'lucide-react';
-import ThemeToggle from './ThemeToggle.jsx';
 
 const Navigation = ({ currentPath = '/' }) => {
   const navItems = [
@@ -39,13 +38,10 @@ const Navigation = ({ currentPath = '/' }) => {
                 <span>{label}</span>
               </a>
             ))}
-            
-            <ThemeToggle />
           </div>
 
           {/* Mobile menu button */}
           <div className="md:hidden flex items-center space-x-2">
-            <ThemeToggle />
             <button className="p-2 rounded-md text-gray-700 dark:text-dark-300 hover:text-neon-blue-400 hover:bg-gray-50 dark:hover:bg-dark-700 transition-all">
               <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
