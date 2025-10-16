@@ -1,57 +1,52 @@
-import React, { useState, useEffect } from 'react';
-import { Sun, Moon } from 'lucide-react';
+import * as React from "react"
+import { Moon, Sun } from "lucide-react"
 
-const ThemeToggle = () => {
-  const [darkMode, setDarkMode] = useState(false);
+import { Button } from "@/components/ui/button"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
-  useEffect(() => {
-    // Verificar preferencia guardada o del sistema
-    const savedTheme = localStorage.getItem('theme');
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    
-    const shouldUseDark = savedTheme === 'dark' || (!savedTheme && prefersDark);
-    setDarkMode(shouldUseDark);
-    updateTheme(shouldUseDark);
-  }, []);
+export function ModeToggle() {
+  const [theme, setThemeState] = React.useState<
+    "theme-light" | "dark" | "system"
+  >("theme-light")
 
-  const updateTheme = (isDark: boolean) => {
-    const html = document.documentElement;
-    if (isDark) {
-      html.classList.add('dark');
-      localStorage.setItem('theme', 'dark');
-    } else {
-      html.classList.remove('dark');
-      localStorage.setItem('theme', 'light');
-    }
-  };
+  React.useEffect(() => {
+    const isDarkMode = document.documentElement.classList.contains("dark")
+    setThemeState(isDarkMode ? "dark" : "theme-light")
+  }, [])
 
-  const toggleTheme = () => {
-    const newDarkMode = !darkMode;
-    setDarkMode(newDarkMode);
-    updateTheme(newDarkMode);
-  };
+  React.useEffect(() => {
+    const isDark =
+      theme === "dark" ||
+      (theme === "system" &&
+        window.matchMedia("(prefers-color-scheme: dark)").matches)
+    document.documentElement.classList[isDark ? "add" : "remove"]("dark")
+  }, [theme])
 
   return (
-    <button
-      onClick={toggleTheme}
-      className={`
-        relative p-2 rounded-lg transition-all duration-300 
-        ${darkMode 
-          ? 'bg-dark-700 hover:bg-dark-600 text-neon-blue-400 hover:shadow-glow-blue' 
-          : 'bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-blue-600'
-        }
-      `}
-      aria-label={darkMode ? 'Cambiar a tema claro' : 'Cambiar a tema oscuro'}
-    >
-      <div className="relative">
-        {darkMode ? (
-          <Sun className="h-5 w-5 animate-glow" />
-        ) : (
-          <Moon className="h-5 w-5" />
-        )}
-      </div>
-    </button>
-  );
-};
-
-export default ThemeToggle;
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="outline" size="icon">
+          <Sun className="h-[1.2rem] w-[1.2rem] scale-100 rotate-0 transition-all dark:scale-0 dark:-rotate-90" />
+          <Moon className="absolute h-[1.2rem] w-[1.2rem] scale-0 rotate-90 transition-all dark:scale-100 dark:rotate-0" />
+          <span className="sr-only">Toggle theme</span>
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuItem onClick={() => setThemeState("theme-light")}>
+          Light
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => setThemeState("dark")}>
+          Dark
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => setThemeState("system")}>
+          System
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )
+}
