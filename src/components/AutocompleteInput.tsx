@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { Input } from "@/components/ui/input"
 
 interface AutocompleteInputProps {
   onSelect: (selection: any) => void;
@@ -70,7 +71,7 @@ export default function AutocompleteInput({ onSelect, selected, setSelected }: A
 
   return (
     <div className="relative w-full mx-auto">
-      <input
+      <Input
         type="text"
         value={query}
         onChange={(e) => {
@@ -78,7 +79,7 @@ export default function AutocompleteInput({ onSelect, selected, setSelected }: A
           setSelected(null);
         }}
         placeholder="Escribe para buscar..."
-        className="w-full p-4 border border-gray-300 dark:border-dark-600 bg-white dark:bg-dark-800 sm:dark:bg-dark-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-neon-blue-500 focus:border-transparent resize-none transition-all duration-300 placeholder-gray-500 dark:placeholder-dark-400"
+        className="w-full rounded-2xl p-4 border border-gray-300 dark:border-dark-600 bg-white dark:bg-dark-800 sm:dark:bg-dark-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-neon-blue-500 focus:border-transparent resize-none transition-all duration-300 placeholder-gray-500 dark:placeholder-dark-400"
       />
 
       {loading && (
