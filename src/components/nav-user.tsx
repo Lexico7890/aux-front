@@ -1,5 +1,6 @@
 "use client"
 
+import React from "react"
 import {
   BadgeCheck,
   Bell,
@@ -29,6 +30,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar"
+import { ModeToggle } from "./ThemeToggle"
 
 export function NavUser({
   user,
@@ -77,6 +79,7 @@ export function NavUser({
                   <span className="truncate font-semibold">{user.name}</span>
                   <span className="truncate text-xs">{user.email}</span>
                 </div>
+                <ModeToggle />
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />

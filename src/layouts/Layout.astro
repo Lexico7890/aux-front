@@ -6,7 +6,6 @@ export interface Props {
 const { title } = Astro.props;
 import { Toaster } from "@/components/ui/sonner"
 import '../styles/global.css'
-import { ModeToggle } from "@/components/ThemeToggle";
 import Navigation from '@/components/Navigation';
 ---
 
@@ -30,7 +29,7 @@ import Navigation from '@/components/Navigation';
 </script>
 
 <!doctype html>
-<html lang="es">
+<html lang="es" class="dark">
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="description" content="PWA para gestión de inventario" />
