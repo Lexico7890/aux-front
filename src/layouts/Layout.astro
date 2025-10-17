@@ -6,7 +6,7 @@ export interface Props {
 const { title } = Astro.props;
 import { Toaster } from "@/components/ui/sonner"
 import '../styles/global.css'
-import { ModeToggle } from "@/components/ThemeToggle";
+import Navigation from '@/components/Navigation';
 ---
 
 <script is:inline>
@@ -29,7 +29,7 @@ import { ModeToggle } from "@/components/ThemeToggle";
 </script>
 
 <!doctype html>
-<html lang="es">
+<html lang="es" class="dark">
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="description" content="PWA para gestión de inventario" />
@@ -39,9 +39,10 @@ import { ModeToggle } from "@/components/ThemeToggle";
 		<meta name="theme-color" content="#3b82f6" />
 		<title>{title}</title>
 	</head>
-	<body class="bg-gray-50 min-h-screen">
-		<slot />
-		<ModeToggle client:load />
+	<body>
+		<Navigation client:load>
+			<slot />
+		</Navigation>
 		<Toaster richColors client:load />
 		<script>
 			// Register Service Worker
