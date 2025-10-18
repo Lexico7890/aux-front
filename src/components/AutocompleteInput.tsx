@@ -79,7 +79,7 @@ export default function AutocompleteInput({ onSelect, selected, setSelected }: A
           setSelected(null);
         }}
         placeholder="Escribe para buscar..."
-        className="w-full rounded-2xl p-4 border border-gray-300 dark:border-dark-600 bg-white dark:bg-dark-800 sm:dark:bg-dark-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-neon-blue-500 focus:border-transparent resize-none transition-all duration-300 placeholder-gray-500 dark:placeholder-dark-400"
+        className="w-full rounded-2xl p-4 dark:text-white focus:ring-2 focus:ring-neon-blue-500 focus:border-transparent resize-none transition-all duration-300 placeholder-gray-500"
       />
 
       {loading && (

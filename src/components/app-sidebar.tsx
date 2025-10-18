@@ -50,21 +50,25 @@ const data = {
   ],
   navMain: [
     {
-      title: "Playground",
+      title: "Inventario",
       url: "#",
       icon: TerminalSquare,
       isActive: true,
       items: [
         {
-          title: "History",
+          title: "Principal",
           url: "#",
         },
         {
-          title: "Starred",
+          title: "Listado",
           url: "#",
         },
         {
-          title: "Settings",
+          title: "Movimientos",
+          url: "#",
+        },
+        {
+          title: "Clientes",
           url: "#",
         },
       ],
