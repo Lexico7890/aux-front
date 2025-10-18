@@ -51,7 +51,7 @@ const MovementCoworkers = () => {
                 />
               </div>
               <div className="col-span-3 flex items-center gap-2 p-2 rounded-2xl">
-                <span className="text-gray-700 dark:text-dark-300 font-semibold text-lg mx-4">{countItems}</span>
+                <span className="font-semibold text-lg mx-4 rounded-full h-8 w-8 flex justify-center items-center">{countItems}</span>
                 <Slider
                   defaultValue={[1]}
                   max={10}
