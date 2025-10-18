@@ -79,21 +79,21 @@ export default function AutocompleteInput({ onSelect, selected, setSelected }: A
           setSelected(null);
         }}
         placeholder="Escribe para buscar..."
-        className="w-full rounded-2xl p-4 border border-gray-300 dark:border-dark-600 bg-white dark:bg-dark-800 sm:dark:bg-dark-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-neon-blue-500 focus:border-transparent resize-none transition-all duration-300 placeholder-gray-500 dark:placeholder-dark-400"
+        className="w-full rounded-2xl p-4 dark:text-white focus:ring-2 focus:ring-neon-blue-500 focus:border-transparent resize-none transition-all duration-300 placeholder-gray-500"
       />
 
       {loading && (
-        <div className="absolute z-40 left-0 right-0 bg-white border rounded-lg mt-1 p-2 text-gray-500">
+        <div className="absolute z-40 left-0 right-0 border bg-background mt-1 p-2 rounded-full">
           Buscando...
         </div>
       )}
 
       {!loading && suggestions.length > 0 && (
-        <ul className="absolute z-40 left-0 right-0 bg-white border rounded-lg mt-1 max-h-60 overflow-y-auto shadow">
+        <ul className="absolute z-40 left-0 right-0 bg-background border rounded-lg mt-1 max-h-60 overflow-y-auto shadow">
           {suggestions.map((item: any) => (
             <li
               key={item.id || item.name}
-              className="p-2 hover:bg-blue-100 cursor-pointer"
+              className="p-2 cursor-pointer hover:bg-red-400"
               onClick={() => handleSelect(item)}
             >
               {item.name || item}
@@ -103,8 +103,8 @@ export default function AutocompleteInput({ onSelect, selected, setSelected }: A
       )}
 
       {selected && (
-        <div className="mt-4 p-2 bg-gray-100 rounded dark:bg-dark-400">
-          <p className="text-sm text-gray-700">
+        <div className="mt-4 p-2 bg-red-400 rounded-full text-center">
+          <p className="text-sm dark:text-white">
             <strong>Referencia:</strong> {selected.id || selected}
           </p>
         </div>
