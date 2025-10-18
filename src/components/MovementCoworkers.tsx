@@ -83,7 +83,7 @@ const MovementCoworkers = () => {
         </form>
 
         {/* Quick Actions */}
-        <div className="mt-6 grid grid-cols-2 md:grid-cols-2 gap-3">
+        <div className="mt-6 grid sm:grid-cols-1 md:grid-cols-2 gap-3">
           <Button
             onClick={() => setActionSelected(ActionsMovements.SALIDA_COTIZACION)}
             variant="default"
