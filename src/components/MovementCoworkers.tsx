@@ -2,19 +2,20 @@ import React, { useState } from "react";
 import { Loader2, DoorOpen, DoorClosed } from "lucide-react";
 import AutocompleteInput from "./AutocompleteInput";
 import { Slider } from "@/components/ui/slider";
-import { toast } from "sonner"
 import { useMovements } from "@/hooks/useMovements";
 import { ActionsMovements } from "@/types/movement";
 import { Input } from "@/components/ui/input"
 import { Button } from "./ui/button";
+import { useUserStore } from "@/store/useUserStore";
 
 const MovementCoworkers = () => {
-
 
   const [countItems, setCountItems] = useState<number>(1);
   const [orderNumber, setOrderNumber] = useState<string>("");
   const [actionSelected, setActionSelected] =
     useState<ActionsMovements>(ActionsMovements.SALIDA_COTIZACION);
+  const user = useUserStore((state) => state.sessionData);
+  console.log("User in MovementCoworkers:", user);
 
   const { handleCreateMovement, isProcessing, selected, setSelected, setItemName } = useMovements()
 
