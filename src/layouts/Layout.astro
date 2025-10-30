@@ -10,7 +10,7 @@ import Navigation from '@/components/Navigation';
 
 // Check if current path is login
 const currentPath = Astro.url.pathname;
-const isLoginPage = currentPath === '/login' || currentPath === '/login/';
+const isLoginPage = currentPath === '/login' || currentPath === '/auth/callback';
 ---
 
 <script is:inline>

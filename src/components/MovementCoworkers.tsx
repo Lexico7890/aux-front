@@ -28,7 +28,7 @@ const MovementCoworkers = () => {
 
 
   return (
-    <div className="rounded-2xl sm:shadow-lg dark:shadow-2xl sm:border p-8 dark:bg-neutral-800">
+    <div className="rounded-2xl sm:shadow-lg dark:shadow-2xl sm:border p-8 bg-card">
         {/* Voice Button */}
 
         {/* Text Input */}

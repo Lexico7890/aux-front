@@ -14,9 +14,6 @@ const AuthCallback = () => {
 
   const handleAuthCallback = async () => {
     try {
-      console.log('🔄 Processing auth callback...');
-
-      // Verificar si hay un usuario autenticado
       const { data: { user }, error: authError } = await supabase.auth.getUser();
 
       if (authError) {
@@ -28,9 +25,6 @@ const AuthCallback = () => {
         throw new Error('No user found');
       }
 
-      console.log('✅ User authenticated:', user.email);
-
-      // Llamar a la función RPC para obtener datos de sesión
       const { data: sessionData, error: rpcError } = await supabase.rpc('get_user_session_data');
 
       if (rpcError) {
@@ -41,13 +35,7 @@ const AuthCallback = () => {
       if (!sessionData) {
         throw new Error('No session data returned');
       }
-
-      console.log('✅ Session data loaded:', sessionData);
-
-      // Guardar en Zustand
       setSessionData(sessionData);
-
-      // Redirigir al dashboard
       setTimeout(() => {
         window.location.href = '/';
       }, 1000);
@@ -71,7 +59,7 @@ const AuthCallback = () => {
         <div className="text-center">
           <div className="text-red-500 text-xl mb-4">❌ Error</div>
           <p className="text-gray-600">{error}</p>
-          <p className="text-sm text-gray-500 mt-2">Redirecting to login...</p>
+          <p className="text-sm text-gray-500 mt-2">Redirigiendo al login...</p>
         </div>
       </div>
     );
@@ -82,7 +70,7 @@ const AuthCallback = () => {
       <div className="text-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
         <p className="mt-4 text-gray-600">
-          {loading ? 'Loading your session...' : 'Redirecting to dashboard...'}
+          {loading ? 'Cargando su sesion...' : 'Redirigiendo a la pagina principal...'}
         </p>
       </div>
     </div>
