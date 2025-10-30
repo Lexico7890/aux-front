@@ -1,28 +1,28 @@
-import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { supabase } from '@/lib/supabase';
-import { toast } from 'sonner';
-import { useUserStore } from '@/store/useUserStore';
+import React, { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { supabase } from "@/lib/supabase";
+import { toast } from "sonner";
+import { useUserStore } from "@/store/useUserStore";
 
 export function LoginForm() {
-  const [phoneNumber, setPhoneNumber] = useState('');
-  const [error, setError] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [otpSent, setOtpSent] = useState(false);
-  const [otp, setOtp] = useState('');
-  const setUser = useUserStore((state) => state.setUser);
+  const [otp, setOtp] = useState("");
+  const setUser = useUserStore((state) => state.setSessionData);
 
   const validatePhoneNumber = (phone: string): boolean => {
     // Basic phone number validation (10 digits)
     const phoneRegex = /^[0-9]{10}$/;
-    return phoneRegex.test(phone.replace(/\s/g, ''));
+    return phoneRegex.test(phone.replace(/\s/g, ""));
   };
 
   const formatPhoneNumber = (phone: string): string => {
     // Format to E.164 format (add country code if needed)
     // Assuming US numbers, adjust country code as needed
-    const cleaned = phone.replace(/\s/g, '');
+    const cleaned = phone.replace(/\s/g, "");
     return `+1${cleaned}`; // Change +1 to your country code
   };
 
@@ -30,16 +30,16 @@ export function LoginForm() {
     e.preventDefault();
 
     if (!phoneNumber) {
-      setError('Phone number is required');
+      setError("Phone number is required");
       return;
     }
 
     if (!validatePhoneNumber(phoneNumber)) {
-      setError('Please enter a valid 10-digit phone number');
+      setError("Please enter a valid 10-digit phone number");
       return;
     }
 
-    setError('');
+    setError("");
     setLoading(true);
 
     try {
@@ -52,11 +52,11 @@ export function LoginForm() {
       if (error) throw error;
 
       setOtpSent(true);
-      toast.success('OTP sent to your phone number!');
+      toast.success("OTP sent to your phone number!");
     } catch (error: any) {
-      console.error('Error sending OTP:', error);
-      setError(error.message || 'Failed to send OTP. Please try again.');
-      toast.error('Failed to send OTP');
+      console.error("Error sending OTP:", error);
+      setError(error.message || "Failed to send OTP. Please try again.");
+      toast.error("Failed to send OTP");
     } finally {
       setLoading(false);
     }
@@ -66,11 +66,11 @@ export function LoginForm() {
     e.preventDefault();
 
     if (!otp || otp.length !== 6) {
-      setError('Please enter a valid 6-digit OTP');
+      setError("Please enter a valid 6-digit OTP");
       return;
     }
 
-    setError('');
+    setError("");
     setLoading(true);
 
     try {
@@ -79,30 +79,32 @@ export function LoginForm() {
       const { data, error } = await supabase.auth.verifyOtp({
         phone: formattedPhone,
         token: otp,
-        type: 'sms',
+        type: "sms",
       });
 
       if (error) throw error;
 
       // Fetch user session data
-      const { data: dataUser, error: errorDataUser } = await supabase.rpc('get_user_session_data');
+      const { data: dataUser, error: errorDataUser } = await supabase.rpc(
+        "get_user_session_data"
+      );
 
       if (errorDataUser) {
-        console.error('Error fetching user session data:', errorDataUser);
+        console.error("Error fetching user session data:", errorDataUser);
       } else if (dataUser) {
-        console.log('User session data:', dataUser);
+        console.log("User session data:", dataUser);
         setUser(dataUser);
       }
 
-      toast.success('Successfully authenticated!');
-      console.log('User authenticated:', data);
+      toast.success("Successfully authenticated!");
+      console.log("User authenticated:", data);
 
       // Redirect to dashboard or home page
-      window.location.href = '/';
+      window.location.href = "/";
     } catch (error: any) {
-      console.error('Error verifying OTP:', error);
-      setError(error.message || 'Invalid OTP. Please try again.');
-      toast.error('Invalid OTP');
+      console.error("Error verifying OTP:", error);
+      setError(error.message || "Invalid OTP. Please try again.");
+      toast.error("Invalid OTP");
     } finally {
       setLoading(false);
     }
@@ -110,32 +112,20 @@ export function LoginForm() {
 
   const handleGoogleAuth = async () => {
     setLoading(true);
-
     try {
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
         options: {
-          redirectTo: window.location.origin,
+          redirectTo: `${window.location.origin}/auth/callback`, // ← Cambia esto
         },
       });
 
       if (error) throw error;
-      console.log("data from google auth:", data);
 
-      // Fetch user session data
-      const { data: dataUser, error: errorDataUser } = await supabase.rpc('get_user_session_data');
-
-      if (errorDataUser) {
-        console.error('Error fetching user session data:', errorDataUser);
-      } else if (dataUser) {
-        console.log('User session data:', dataUser);
-        setUser(dataUser);
-      }
+      // El código después de esto NO se ejecutará porque hay una redirección
     } catch (error: any) {
-      console.error('Error with Google authentication:', error);
-      toast.error('Failed to authenticate with Google');
-      setError(error.message || 'Failed to authenticate with Google');
-    } finally {
+      console.error("Error with Google authentication:", error);
+      toast.error("Failed to authenticate with Google");
       setLoading(false);
     }
   };
@@ -146,8 +136,8 @@ export function LoginForm() {
         <h2 className="text-3xl font-bold tracking-tight">Welcome Back</h2>
         <p className="mt-2 text-sm text-muted-foreground">
           {otpSent
-            ? 'Enter the verification code sent to your phone'
-            : 'Sign in to your account to continue'}
+            ? "Enter the verification code sent to your phone"
+            : "Sign in to your account to continue"}
         </p>
       </div>
 
@@ -165,18 +155,16 @@ export function LoginForm() {
                 value={phoneNumber}
                 onChange={(e) => {
                   setPhoneNumber(e.target.value);
-                  setError('');
+                  setError("");
                 }}
-                className={error ? 'border-destructive' : ''}
+                className={error ? "border-destructive" : ""}
                 disabled={loading}
               />
-              {error && (
-                <p className="text-sm text-destructive">{error}</p>
-              )}
+              {error && <p className="text-sm text-destructive">{error}</p>}
             </div>
 
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? 'Sending...' : 'Continue with Phone'}
+              {loading ? "Sending..." : "Continue with Phone"}
             </Button>
           </form>
 
@@ -213,7 +201,7 @@ export function LoginForm() {
                 d="M488 261.8C488 403.3 391.1 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 123 24.5 166.3 64.9l-67.5 64.9C258.5 52.6 94.3 116.6 94.3 256c0 86.5 69.1 156.6 153.7 156.6 98.2 0 135-70.4 140.8-106.9H248v-85.3h236.1c2.3 12.7 3.9 24.9 3.9 41.4z"
               ></path>
             </svg>
-            {loading ? 'Authenticating...' : 'Continue with Google'}
+            {loading ? "Authenticating..." : "Continue with Google"}
           </Button>
         </>
       ) : (
@@ -228,20 +216,18 @@ export function LoginForm() {
               placeholder="Enter 6-digit code"
               value={otp}
               onChange={(e) => {
-                setOtp(e.target.value.replace(/\D/g, '').slice(0, 6));
-                setError('');
+                setOtp(e.target.value.replace(/\D/g, "").slice(0, 6));
+                setError("");
               }}
-              className={error ? 'border-destructive' : ''}
+              className={error ? "border-destructive" : ""}
               disabled={loading}
               maxLength={6}
             />
-            {error && (
-              <p className="text-sm text-destructive">{error}</p>
-            )}
+            {error && <p className="text-sm text-destructive">{error}</p>}
           </div>
 
           <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? 'Verifying...' : 'Verify Code'}
+            {loading ? "Verifying..." : "Verify Code"}
           </Button>
 
           <Button
@@ -250,8 +236,8 @@ export function LoginForm() {
             className="w-full"
             onClick={() => {
               setOtpSent(false);
-              setOtp('');
-              setError('');
+              setOtp("");
+              setError("");
             }}
             disabled={loading}
           >

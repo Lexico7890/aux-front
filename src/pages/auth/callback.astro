@@ -1,0 +1,9 @@
+---
+// src/pages/auth/callback.astro
+import Layout from '@/layouts/Layout.astro';
+import AuthCallback from '@/components/AuthCallback';
+---
+
+<Layout title="Authentication">
+  <AuthCallback client:only="react" />
+</Layout>
