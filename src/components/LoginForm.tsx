@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/lib/supabase";
@@ -12,6 +12,7 @@ export function LoginForm() {
   const [otpSent, setOtpSent] = useState(false);
   const [otp, setOtp] = useState("");
   const setUser = useUserStore((state) => state.setSessionData);
+  const isAuthenticated = useUserStore((state) => state.isAuthenticated);
 
   const validatePhoneNumber = (phone: string): boolean => {
     // Basic phone number validation (10 digits)
@@ -129,6 +130,12 @@ export function LoginForm() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      window.location.href = "/";
+    }
+  }, []);
 
   return (
     <div className="w-full max-w-md space-y-8 p-8 bg-card rounded-lg shadow-lg border">
