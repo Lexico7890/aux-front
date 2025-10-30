@@ -1,0 +1,10 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { LoginForm } from '../components/LoginForm';
+---
+
+<Layout title="Minca administrador - Login">
+  <main class="min-h-screen flex items-center justify-center bg-background px-4 py-12">
+    <LoginForm client:load />
+  </main>
+</Layout>
