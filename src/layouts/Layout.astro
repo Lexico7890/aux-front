@@ -1,4 +1,5 @@
 ---
+// src/layouts/Layout.astro
 export interface Props {
 	title: string;
 }
@@ -6,11 +7,6 @@ export interface Props {
 const { title } = Astro.props;
 import { Toaster } from "@/components/ui/sonner"
 import '../styles/global.css'
-import Navigation from '@/components/Navigation';
-
-// Check if current path is login
-const currentPath = Astro.url.pathname;
-const isLoginPage = currentPath === '/login' || currentPath === '/auth/callback';
 ---
 
 <script is:inline>
@@ -44,33 +40,19 @@ const isLoginPage = currentPath === '/login' || currentPath === '/auth/callback'
 		<title>{title}</title>
 	</head>
 	<body>
-		{!isLoginPage ? (
-			<Navigation client:load>
-				<slot />
-			</Navigation>
-		) : (
-			<slot />
-		)}
+		<slot />
 		<Toaster richColors client:load />
+		
 		<script>
-			// Register Service Worker
 			if ("serviceWorker" in navigator) {
 				window.addEventListener("load", () => {
 					navigator.serviceWorker
 						.register("/sw.js")
-						.then((registration) => {
-							console.log("SW registered: ", registration);
-						})
-						.catch((registrationError) => {
-							console.log(
-								"SW registration failed: ",
-								registrationError,
-							);
-						});
+						.then((registration) => console.log("SW registered: ", registration))
+						.catch((registrationError) => console.log("SW registration failed: ", registrationError));
 				});
 			}
 
-			// PWA Install prompt
 			let deferredPrompt;
 			window.addEventListener("beforeinstallprompt", (e) => {
 				deferredPrompt = e;
