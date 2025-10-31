@@ -6,7 +6,12 @@ export interface Props {
 
 const { title } = Astro.props;
 import { Toaster } from "@/components/ui/sonner"
+import Navigation from "@/components/Navigation"
 import '../styles/global.css'
+
+// Get current path to determine if we should show Navigation
+const currentPath = Astro.url.pathname;
+const isAuthPage = currentPath === '/login' || currentPath.startsWith('/auth/callback');
 ---
 
 <script is:inline>
@@ -40,7 +45,13 @@ import '../styles/global.css'
 		<title>{title}</title>
 	</head>
 	<body>
-		<slot />
+		{isAuthPage ? (
+			<slot />
+		) : (
+			<Navigation client:load>
+				<slot />
+			</Navigation>
+		)}
 		<Toaster richColors client:load />
 		
 		<script>
