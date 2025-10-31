@@ -1,173 +1,295 @@
-// src/components/InventoryForm.tsx
+// src/components/InventoryTable.tsx
 import React, { useState } from 'react';
-import { useCreateInventoryItem } from '@/hooks/useInventory';
-import { Plus, Loader2 } from 'lucide-react';
+import { useInventory, useUpdateInventoryItem } from '@/hooks/useInventory';
+import { Package, Loader2, AlertTriangle, Edit2, Save, X } from 'lucide-react';
 import { toast } from 'sonner';
+import type { InventoryItem } from '@/lib/api';
 
-const InventoryForm = () => {
-  const [id, setId] = useState('');
-  const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
-  const [category, setCategory] = useState('');
-  const [stock, setStock] = useState<number>(0);
-  const [minStock, setMinStock] = useState<number>(0);
+const InventoryTable = () => {
+  const [sortBy, setSortBy] = useState<'name' | 'stock' | 'category'>('name');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editForm, setEditForm] = useState<Partial<InventoryItem>>({});
 
-  // ✅ Usar React Query mutation
-  const createItem = useCreateInventoryItem();
+  // ✅ Usar React Query para obtener los datos
+  const { data, isLoading, error, isError } = useInventory({
+    sortBy,
+    sortOrder,
+  });
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // ✅ Usar React Query mutation para actualizar
+  const updateItem = useUpdateInventoryItem();
 
-    if (!id || !name) {
-      toast.error('El ID y el Nombre son obligatorios');
-      return;
-    }
-
-    try {
-      await createItem.mutateAsync({
-        id,
-        name,
-        description: description || undefined,
-        category: category || undefined,
-        stock,
-        min_stock: minStock,
-      });
-
-      // Limpiar formulario
-      setId('');
-      setName('');
-      setDescription('');
-      setCategory('');
-      setStock(0);
-      setMinStock(0);
-
-      toast.success(`Ítem "${name}" creado con éxito!`);
-    } catch (error: any) {
-      toast.error(error.message || 'Error al crear el ítem');
+  const handleSort = (column: 'name' | 'stock' | 'category') => {
+    if (sortBy === column) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortBy(column);
+      setSortOrder('asc');
     }
   };
 
+  const startEdit = (item: InventoryItem) => {
+    setEditingId(item.id);
+    setEditForm({ ...item });
+  };
+
+  const cancelEdit = () => {
+    setEditingId(null);
+    setEditForm({});
+  };
+
+  const saveEdit = async () => {
+    if (!editingId) return;
+
+    try {
+      await updateItem.mutateAsync({
+        id: editingId,
+        data: editForm,
+      });
+      setEditingId(null);
+      setEditForm({});
+    } catch (error: any) {
+      toast.error(error.message || 'Error al actualizar el ítem');
+    }
+  };
+
+  const isLowStock = (item: InventoryItem) => {
+    return item.stock <= item.min_stock;
+  };
+
+  if (isLoading) {
+    return (
+      <div className="p-6 bg-white shadow-xl rounded-lg border border-gray-100">
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
+          <span className="ml-3 text-gray-600">Cargando inventario...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="p-6 bg-white shadow-xl rounded-lg border border-red-200">
+        <div className="flex items-center text-red-600">
+          <AlertTriangle className="h-6 w-6 mr-2" />
+          <div>
+            <h3 className="font-semibold">Error al cargar el inventario</h3>
+            <p className="text-sm text-red-500">{(error as Error)?.message}</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const items = data?.items || [];
+
   return (
     <div className="p-6 bg-white shadow-xl rounded-lg border border-gray-100">
-      <div className="flex items-center mb-4">
-        <Plus className="h-6 w-6 text-indigo-600 mr-2" />
+      <div className="flex items-center mb-6">
+        <Package className="h-6 w-6 text-indigo-600 mr-2" />
         <h2 className="text-xl font-semibold text-gray-800">
-          Agregar Nuevo Ítem
+          Inventario Actual
         </h2>
+        <span className="ml-auto text-sm text-gray-500">
+          {items.length} {items.length === 1 ? 'ítem' : 'ítems'}
+        </span>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label htmlFor="id" className="block text-sm font-medium text-gray-700">
-            ID (Referencia)*
-          </label>
-          <input
-            type="text"
-            name="id"
-            id="id"
-            value={id}
-            onChange={(e) => setId(e.target.value)}
-            required
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border"
-            placeholder="SKU-001"
-          />
+      {items.length === 0 ? (
+        <div className="text-center py-12 text-gray-500">
+          <Package className="h-12 w-12 mx-auto mb-3 opacity-50" />
+          <p>No hay ítems en el inventario</p>
+          <p className="text-sm">Agrega tu primer ítem usando el formulario</p>
         </div>
-
-        <div>
-          <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-            Nombre del Producto*
-          </label>
-          <input
-            type="text"
-            name="name"
-            id="name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            required
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border"
-            placeholder="Tornillo M6"
-          />
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th
+                  className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                  onClick={() => handleSort('name')}
+                >
+                  <div className="flex items-center">
+                    Producto
+                    {sortBy === 'name' && (
+                      <span className="ml-1">{sortOrder === 'asc' ? '↑' : '↓'}</span>
+                    )}
+                  </div>
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  ID
+                </th>
+                <th
+                  className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                  onClick={() => handleSort('category')}
+                >
+                  <div className="flex items-center">
+                    Categoría
+                    {sortBy === 'category' && (
+                      <span className="ml-1">{sortOrder === 'asc' ? '↑' : '↓'}</span>
+                    )}
+                  </div>
+                </th>
+                <th
+                  className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                  onClick={() => handleSort('stock')}
+                >
+                  <div className="flex items-center">
+                    Stock
+                    {sortBy === 'stock' && (
+                      <span className="ml-1">{sortOrder === 'asc' ? '↑' : '↓'}</span>
+                    )}
+                  </div>
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Stock Mínimo
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Acciones
+                </th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {items.map((item) => (
+                <tr
+                  key={item.id}
+                  className={`${
+                    isLowStock(item) ? 'bg-red-50' : 'hover:bg-gray-50'
+                  } transition-colors`}
+                >
+                  <td className="px-4 py-3 whitespace-nowrap">
+                    {editingId === item.id ? (
+                      <input
+                        type="text"
+                        value={editForm.name || ''}
+                        onChange={(e) =>
+                          setEditForm({ ...editForm, name: e.target.value })
+                        }
+                        className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
+                      />
+                    ) : (
+                      <div>
+                        <div className="text-sm font-medium text-gray-900">
+                          {item.name}
+                        </div>
+                        {item.description && (
+                          <div className="text-sm text-gray-500">
+                            {item.description}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </td>
+                  <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
+                    {item.id}
+                  </td>
+                  <td className="px-4 py-3 whitespace-nowrap">
+                    {editingId === item.id ? (
+                      <input
+                        type="text"
+                        value={editForm.category || ''}
+                        onChange={(e) =>
+                          setEditForm({ ...editForm, category: e.target.value })
+                        }
+                        className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
+                      />
+                    ) : (
+                      <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-indigo-100 text-indigo-800">
+                        {item.category || 'Sin categoría'}
+                      </span>
+                    )}
+                  </td>
+                  <td className="px-4 py-3 whitespace-nowrap">
+                    {editingId === item.id ? (
+                      <input
+                        type="number"
+                        value={editForm.stock || 0}
+                        onChange={(e) =>
+                          setEditForm({ ...editForm, stock: Number(e.target.value) })
+                        }
+                        className="w-20 px-2 py-1 border border-gray-300 rounded text-sm"
+                      />
+                    ) : (
+                      <div className="flex items-center">
+                        <span
+                          className={`text-sm font-medium ${
+                            isLowStock(item) ? 'text-red-600' : 'text-gray-900'
+                          }`}
+                        >
+                          {item.stock}
+                        </span>
+                        {isLowStock(item) && (
+                          <AlertTriangle className="h-4 w-4 text-red-500 ml-2" />
+                        )}
+                      </div>
+                    )}
+                  </td>
+                  <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
+                    {editingId === item.id ? (
+                      <input
+                        type="number"
+                        value={editForm.min_stock || 0}
+                        onChange={(e) =>
+                          setEditForm({ ...editForm, min_stock: Number(e.target.value) })
+                        }
+                        className="w-20 px-2 py-1 border border-gray-300 rounded text-sm"
+                      />
+                    ) : (
+                      item.min_stock
+                    )}
+                  </td>
+                  <td className="px-4 py-3 whitespace-nowrap text-sm">
+                    {editingId === item.id ? (
+                      <div className="flex space-x-2">
+                        <button
+                          onClick={saveEdit}
+                          disabled={updateItem.isPending}
+                          className="text-green-600 hover:text-green-900 disabled:opacity-50"
+                        >
+                          {updateItem.isPending ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Save className="h-4 w-4" />
+                          )}
+                        </button>
+                        <button
+                          onClick={cancelEdit}
+                          disabled={updateItem.isPending}
+                          className="text-gray-600 hover:text-gray-900 disabled:opacity-50"
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => startEdit(item)}
+                        className="text-indigo-600 hover:text-indigo-900"
+                      >
+                        <Edit2 className="h-4 w-4" />
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
+      )}
 
-        <div>
-          <label htmlFor="description" className="block text-sm font-medium text-gray-700">
-            Descripción
-          </label>
-          <textarea
-            name="description"
-            id="description"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            rows={2}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border"
-            placeholder="Descripción del producto..."
-          />
+      {/* Leyenda de alertas de stock bajo */}
+      {items.some(isLowStock) && (
+        <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center text-sm text-red-700">
+          <AlertTriangle className="h-4 w-4 mr-2" />
+          <span>
+            Algunos ítems tienen stock bajo o están agotados
+          </span>
         </div>
-
-        <div>
-          <label htmlFor="category" className="block text-sm font-medium text-gray-700">
-            Categoría
-          </label>
-          <input
-            type="text"
-            name="category"
-            id="category"
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border"
-            placeholder="Ferretería"
-          />
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label htmlFor="stock" className="block text-sm font-medium text-gray-700">
-              Stock Actual
-            </label>
-            <input
-              type="number"
-              name="stock"
-              id="stock"
-              value={stock}
-              onChange={(e) => setStock(Number(e.target.value))}
-              min="0"
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border"
-            />
-          </div>
-
-          <div>
-            <label htmlFor="minStock" className="block text-sm font-medium text-gray-700">
-              Stock Mínimo
-            </label>
-            <input
-              type="number"
-              name="minStock"
-              id="minStock"
-              value={minStock}
-              onChange={(e) => setMinStock(Number(e.target.value))}
-              min="0"
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border"
-            />
-          </div>
-        </div>
-
-        <button
-          type="submit"
-          disabled={createItem.isPending || !id || !name}
-          className="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
-        >
-          {createItem.isPending ? (
-            <>
-              <Loader2 className="animate-spin h-4 w-4 mr-2" />
-              Creando...
-            </>
-          ) : (
-            'Guardar Ítem'
-          )}
-        </button>
-      </form>
+      )}
     </div>
   );
 };
 
-export default InventoryForm;
+export default InventoryTable;
