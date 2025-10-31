@@ -112,18 +112,17 @@ export function LoginForm() {
   };
 
   const handleGoogleAuth = async () => {
+    debugger
     setLoading(true);
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`, // ← Cambia esto
+          redirectTo: `${window.location.origin}/auth/callback`,
         },
       });
 
       if (error) throw error;
-
-      // El código después de esto NO se ejecutará porque hay una redirección
     } catch (error: any) {
       console.error("Error with Google authentication:", error);
       toast.error("Failed to authenticate with Google");
@@ -131,11 +130,11 @@ export function LoginForm() {
     }
   };
 
-  useEffect(() => {
+  /*useEffect(() => {
     if (isAuthenticated) {
       window.location.href = "/";
     }
-  }, []);
+  }, []);*/
 
   return (
     <div className="w-full max-w-md space-y-8 p-8 bg-card rounded-lg shadow-lg border">

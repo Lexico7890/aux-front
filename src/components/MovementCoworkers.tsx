@@ -6,7 +6,6 @@ import { useMovements } from "@/hooks/useMovements";
 import { ActionsMovements } from "@/types/movement";
 import { Input } from "@/components/ui/input"
 import { Button } from "./ui/button";
-import { useUserStore } from "@/store/useUserStore";
 
 const MovementCoworkers = () => {
 
@@ -14,8 +13,6 @@ const MovementCoworkers = () => {
   const [orderNumber, setOrderNumber] = useState<string>("");
   const [actionSelected, setActionSelected] =
     useState<ActionsMovements>(ActionsMovements.SALIDA_COTIZACION);
-  const user = useUserStore((state) => state.sessionData);
-  console.log("User in MovementCoworkers:", user);
 
   const { handleCreateMovement, isProcessing, selected, setSelected, setItemName } = useMovements()
 

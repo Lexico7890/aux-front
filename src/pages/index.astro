@@ -1,11 +1,8 @@
 ---
-import Layout from '../layouts/Layout.astro';
-import Navigation from '../components/Navigation.jsx';
-import MovementCoworkers from '@/components/MovementCoworkers';
+import Layout from "../layouts/Layout.astro";
+import MovementsPageWrapper from "@/components/MovementsPageWrapper";
 ---
 
 <Layout title="Minca administrador - Inicio">
-  <main class="mx-auto sm:px-4 py-2 dark:bg-dark-700">
-    <MovementCoworkers client:load />
-  </main>
+  <MovementsPageWrapper client:only="react" />
 </Layout>

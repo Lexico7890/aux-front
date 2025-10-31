@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { Input } from "@/components/ui/input"
+import { Input } from "@/components/ui/input";
+import { useSearchInventory } from "@/hooks/useInventory";
 
 interface AutocompleteInputProps {
   onSelect: (selection: any) => void;
@@ -7,65 +8,33 @@ interface AutocompleteInputProps {
   setSelected: (selection: any) => void;
 }
 
-export default function AutocompleteInput({ onSelect, selected, setSelected }: AutocompleteInputProps) {
+export default function AutocompleteInput({
+  onSelect,
+  selected,
+  setSelected,
+}: AutocompleteInputProps) {
   const [query, setQuery] = useState("");
-  const [suggestions, setSuggestions] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [timer, setTimer] = useState<any>(null);
+  const [debouncedQuery, setDebouncedQuery] = useState("");
 
-  // --- Ejecuta la búsqueda con 2s de debounce ---
+  // Debounce the search query
   useEffect(() => {
-    if (!query.trim()) {
-      setSuggestions([]);
-      return;
-    }
+    const timer = setTimeout(() => {
+      setDebouncedQuery(query);
+    }, 500); // 500ms debounce
 
-    // Limpiar cualquier temporizador previo
-    if (timer) clearTimeout(timer);
-
-    // Crear nuevo temporizador
-    const newTimer = setTimeout(() => {
-      fetchSuggestions(query);
-    }, 2000); // 2 segundos
-
-    setTimer(newTimer);
-
-    // Limpieza al desmontar o cambiar query
-    return () => clearTimeout(newTimer);
+    return () => clearTimeout(timer);
   }, [query]);
 
-  // --- Llamada al endpoint ---
-  const fetchSuggestions = async (text: any) => {
-    if (selected) {
-      return;
-    }
-    try {
-      setLoading(true);
-      const backendUrl = "https://aux-backend-snlq.onrender.com";
+  // Use React Query hook for searching
+  const { data: suggestions = [], isLoading } = useSearchInventory(
+    debouncedQuery,
+    !selected // Only search if no item is selected
+  );
 
-      const url = `${backendUrl}/inventory/search?q=${encodeURIComponent(text)}`;
-
-      const response = await fetch(url);
-
-      // Si usas TypeScript, asegúrate de que el estado acepte el tipo de datos correcto
-      if (!response.ok) {
-        throw new Error(`Error ${response.status}: Fallo en la búsqueda`);
-      }
-
-      const data = await response.json();
-      setSuggestions(data || []);
-    } catch (err) {
-      console.error("Error buscando coincidencias:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // --- Cuando el usuario selecciona una sugerencia ---
+  // When the user selects a suggestion
   const handleSelect = (item: any) => {
     setSelected(item);
-    setQuery(item.name || item); // muestra en el input
-    setSuggestions([]); // cierra el listado
+    setQuery(item.name || item);
     onSelect(item);
   };
 
@@ -82,13 +51,13 @@ export default function AutocompleteInput({ onSelect, selected, setSelected }: A
         className="w-full rounded-2xl p-4 dark:text-white focus:ring-2 focus:ring-neon-blue-500 focus:border-transparent resize-none transition-all duration-300 placeholder-gray-500"
       />
 
-      {loading && (
+      {isLoading && (
         <div className="absolute z-40 left-0 right-0 border bg-background mt-1 p-2 rounded-full">
           Buscando...
         </div>
       )}
 
-      {!loading && suggestions.length > 0 && (
+      {!isLoading && suggestions.length > 0 && (
         <ul className="absolute z-40 left-0 right-0 bg-background border rounded-lg mt-1 max-h-60 overflow-y-auto shadow">
           {suggestions.map((item: any) => (
             <li
